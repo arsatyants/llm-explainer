@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Как работают LLM — интерактивный курс</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#151820;--surface2:#1c2030;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --text:#e8eaf0;--muted:#7a8099;
+  --purple:#8b7cf8;--purple-dim:rgba(139,124,248,0.12);
+  --teal:#3ecf8e;--teal-dim:rgba(62,207,142,0.12);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.12);
+  --blue:#5ba4f5;--blue-dim:rgba(91,164,245,0.12);
+  --coral:#f87171;--coral-dim:rgba(248,113,113,0.12);
+  --pink:#e879f9;--pink-dim:rgba(232,121,249,0.12);
+  --mono:'JetBrains Mono',monospace;--sans:'Manrope',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+
+/* grid bg */
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0}
+
+.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:64px 24px 96px}
+
+/* ── Hero ── */
+.hero{margin-bottom:72px;text-align:center}
+.hero-badge{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--purple);
+  letter-spacing:.12em;text-transform:uppercase;border:0.5px solid rgba(139,124,248,.35);
+  background:var(--purple-dim);padding:4px 14px;border-radius:20px;margin-bottom:20px}
+.hero h1{font-size:clamp(32px,6vw,56px);font-weight:800;line-height:1.08;
+  letter-spacing:-.03em;color:#fff;margin-bottom:18px}
+.hero h1 em{font-style:normal;color:var(--purple)}
+.hero p{color:var(--muted);font-size:16px;max-width:520px;margin:0 auto 32px;line-height:1.75}
+
+/* flow line */
+.flow-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:56px}
+.flow-tok{font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:6px;
+  border:0.5px solid;white-space:nowrap}
+.flow-tok.p{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.flow-tok.t{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.flow-tok.a{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+.flow-tok.b{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.flow-tok.c{background:var(--coral-dim);border-color:var(--coral);color:var(--coral)}
+.flow-arrow{color:var(--muted);font-size:14px}
+
+/* ── Cards ── */
+.cards{display:flex;flex-direction:column;gap:16px}
+
+.card{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:20px;
+  background:var(--surface);border:0.5px solid var(--border2);
+  border-radius:16px;padding:28px 32px;
+  text-decoration:none;color:inherit;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 60% at 90% 50%,var(--card-glow,.05),transparent);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.card:hover{border-color:var(--card-border,var(--border2));transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.card:hover::before{opacity:1}
+
+.card-num{
+  font-family:var(--mono);font-size:28px;font-weight:700;
+  line-height:1;color:var(--card-color);opacity:.25;
+  padding-top:4px;min-width:36px;text-align:center;
+}
+.card-body{min-width:0}
+.card-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--card-color);margin-bottom:6px}
+.card-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;line-height:1.2}
+.card-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:14px}
+.card-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;
+  background:rgba(255,255,255,.05);border:0.5px solid var(--border2);color:var(--muted)}
+
+.card-arrow{font-size:22px;color:var(--card-color);opacity:.5;
+  transition:opacity .2s,transform .2s;align-self:center}
+.card:hover .card-arrow{opacity:1;transform:translateX(4px)}
+
+/* card-specific accent colors via CSS vars */
+.card-enc {--card-color:var(--blue);  --card-border:var(--blue);  --card-glow:rgba(91,164,245,.06)}
+.card-dec {--card-color:var(--purple);--card-border:var(--purple);--card-glow:rgba(139,124,248,.07)}
+.card-att {--card-color:var(--teal);  --card-border:var(--teal);  --card-glow:rgba(62,207,142,.06)}
+.card-llm {--card-color:var(--amber); --card-border:var(--amber); --card-glow:rgba(245,166,35,.06)}
+.card-agt {--card-color:var(--pink);  --card-border:var(--pink);  --card-glow:rgba(232,121,249,.06)}
+
+/* Connector between cards */
+.connector{display:flex;align-items:center;justify-content:center;height:16px;gap:0}
+.connector-line{width:1px;height:100%;background:linear-gradient(to bottom,var(--border2),var(--border2));flex-shrink:0}
+.connector-dot{width:6px;height:6px;border-radius:50%;background:var(--border2)}
+
+/* ── Footer note ── */
+.foot{margin-top:56px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:2}
+.foot span{color:var(--purple)}
+
+/* Mini canvas for hero */
+#heroCanvas{display:block;margin:0 auto 28px;opacity:.55}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">интерактивный курс · deep learning</div>
+    <h1>Как работают<br><em>языковые модели</em></h1>
+    <p>Пошаговый разбор трансформера — от токена до вероятности следующего слова. Реальные числа, живые вычисления, никакого тумана.</p>
+
+    <canvas id="heroCanvas" width="640" height="56"></canvas>
+
+    <div class="flow-row">
+      <div class="flow-tok p">токен</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-tok b">embedding</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-tok t">attention</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-tok a">FFN</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-tok c">logits</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-tok p">следующий токен</div>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards">
+
+    <a class="card card-llm" href="llm_modern_explainer.html">
+      <div class="card-num">01</div>
+      <div class="card-body">
+        <div class="card-label">современный LLM · GPT-4, Llama, Claude</div>
+        <div class="card-title">Современный LLM — как это работает</div>
+        <div class="card-desc">Архитектуры (encoder/decoder/seq2seq), каузальная маска интерактивно, сэмплинг с ползунками temperature/top-k/top-p, KV-кэш пошагово, современные блоки (RoPE · RMSNorm · SwiGLU · GQA), законы масштабирования, RLHF + DPO пайплайн.</div>
+        <div class="card-tags">
+          <span class="tag">KV-кэш</span>
+          <span class="tag">temperature / top-p</span>
+          <span class="tag">RoPE</span>
+          <span class="tag">GQA</span>
+          <span class="tag">Chinchilla</span>
+          <span class="tag">RLHF / DPO</span>
+          <span class="tag">7 шагов</span>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <div class="connector"><div class="connector-dot"></div></div>
+
+    <a class="card card-enc" href="encoder_explainer.html">
+      <div class="card-num">02</div>
+      <div class="card-body">
+        <div class="card-label">энкодер · BERT-стиль</div>
+        <div class="card-title">Как работает энкодер трансформера</div>
+        <div class="card-desc">Путь токена от слова до контекстуализированного вектора. Токенизация, embedding lookup, positional encoding, Q/K/V проекции, attention scores, FFN. Интерактивные ползунки для каждого шага.</div>
+        <div class="card-tags">
+          <span class="tag">токенизация</span>
+          <span class="tag">embedding</span>
+          <span class="tag">positional encoding</span>
+          <span class="tag">Q K V</span>
+          <span class="tag">attention</span>
+          <span class="tag">FFN</span>
+          <span class="tag">6 шагов</span>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <div class="connector"><div class="connector-dot"></div></div>
+
+    <a class="card card-dec" href="decoder_explainer.html">
+      <div class="card-num">03</div>
+      <div class="card-body">
+        <div class="card-label">декодер · GPT-стиль</div>
+        <div class="card-title">Декодер трансформера — шаг за шагом</div>
+        <div class="card-desc">d=4, все числа вычислены вручную. Трекер вектора "cat" показывает как меняются 4 числа на каждом этапе: embedding → +PE → masked attention → Add&amp;Norm → FFN → LM Head. Вычисление каузальной маски с реальными dot products.</div>
+        <div class="card-tags">
+          <span class="tag">авторегрессия</span>
+          <span class="tag">каузальная маска</span>
+          <span class="tag">LayerNorm</span>
+          <span class="tag">LM Head</span>
+          <span class="tag">реальные числа</span>
+          <span class="tag">6 шагов</span>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <div class="connector"><div class="connector-dot"></div></div>
+
+    <a class="card card-att" href="attention_explainer.html">
+      <div class="card-num">04</div>
+      <div class="card-body">
+        <div class="card-label">механизм attention · детальный разбор</div>
+        <div class="card-title">Scaled Dot-Product Attention — полная математика</div>
+        <div class="card-desc">d=3, 3 токена — достаточно мало, чтобы увидеть каждое перемножение. Кликабельная матрица оценок Q·Kᵀ: выбери ячейку и смотри скалярное произведение по элементам. Переключатель энкодер/декодер меняет маску и softmax в реальном времени.</div>
+        <div class="card-tags">
+          <span class="tag">матрица Q·Kᵀ</span>
+          <span class="tag">масштабирование</span>
+          <span class="tag">softmax</span>
+          <span class="tag">взвешенная сумма V</span>
+          <span class="tag">энкодер vs декодер</span>
+          <span class="tag">7 шагов</span>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <div class="connector"><div class="connector-dot"></div></div>
+
+    <a class="card card-agt" href="agents_explainer.html">
+      <div class="card-num">05</div>
+      <div class="card-body">
+        <div class="card-label">агенты · Claude · GPT-4o · Gemini</div>
+        <div class="card-title">LLM-агенты с циклом обратной связи</div>
+        <div class="card-desc">Как современные модели превращаются в агентов: tool use с реальным JSON запрос/ответ, пошаговый ReAct-цикл, extended thinking (скрытый черновик рассуждений), типы памяти (контекст / внешняя / кэш), мульти-агентная оркестрация и MCP.</div>
+        <div class="card-tags">
+          <span class="tag">tool use</span>
+          <span class="tag">ReAct цикл</span>
+          <span class="tag">extended thinking</span>
+          <span class="tag">KV cache / prompt cache</span>
+          <span class="tag">мульти-агенты</span>
+          <span class="tag">MCP</span>
+          <span class="tag">6 шагов</span>
+        </div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+  </div>
+
+  <div class="foot">
+    d_model = 768 &nbsp;·&nbsp; 12 heads &nbsp;·&nbsp; 12 layers &nbsp;·&nbsp; 110M params<br>
+    <span>BERT-base</span>, 2018 — отправная точка современных LLM
+  </div>
+</div>
+
+<script>
+// ── Hero canvas: animated token embeddings ──────────────────────────
+(function(){
+  const c = document.getElementById('heroCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  const COLORS = ['#8b7cf8','#5ba4f5','#3ecf8e','#f5a623','#f87171'];
+  const N = 32; // dimensions shown
+  let t = 0;
+  const vecs = Array.from({length:5}, (_,tok) =>
+    Array.from({length:N}, (_,d) => ({
+      base: Math.sin(tok*1.7 + d*0.8) * 0.7,
+      freq: 0.3 + d*0.04 + tok*0.1,
+      phase: tok*0.5 + d*0.3,
+    }))
+  );
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const cellW = (W-8) / N;
+    const cellH = (H-8) / 5;
+    vecs.forEach((vec, tok) => {
+      vec.forEach((v, d) => {
+        const val = v.base + Math.sin(t * v.freq + v.phase) * 0.3;
+        const norm = (val + 1) / 2;
+        const clr = COLORS[tok];
+        const x = 4 + d * cellW;
+        const y = 4 + tok * cellH;
+        ctx.fillStyle = clr;
+        ctx.globalAlpha = 0.08 + norm * 0.35;
+        ctx.fillRect(x+1, y+1, cellW-2, cellH-2);
+        ctx.globalAlpha = 1;
+      });
+    });
+  }
+
+  function frame(){
+    t += 0.012;
+    draw();
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+</script>
+</body>
+</html>

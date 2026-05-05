@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Механизм Attention — детальный разбор</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#151820;--surface2:#1c2030;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --text:#e8eaf0;--muted:#7a8099;
+  --purple:#8b7cf8;--purple-dim:rgba(139,124,248,0.12);
+  --teal:#3ecf8e;--teal-dim:rgba(62,207,142,0.12);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.12);
+  --blue:#5ba4f5;--blue-dim:rgba(91,164,245,0.12);
+  --coral:#f87171;--coral-dim:rgba(248,113,113,0.12);
+  --mono:'JetBrains Mono',monospace;--sans:'Manrope',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:48px 24px 80px}
+.nav-links{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.nav-link{font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;border:0.5px solid var(--border2);padding:4px 12px;border-radius:6px;transition:all .2s}
+.nav-link:hover{color:var(--purple);border-color:var(--purple)}
+.label{font-family:var(--mono);font-size:11px;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+h1{font-size:clamp(26px,4.5vw,44px);font-weight:700;line-height:1.1;letter-spacing:-.02em;color:#fff;margin-bottom:16px}
+h1 span{color:var(--purple)}
+h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
+.subtitle{color:var(--muted);font-size:15px;max-width:580px;line-height:1.7}
+.step-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:32px}
+.step-btn{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;letter-spacing:.05em}
+.step-btn:hover{border-color:var(--purple);color:var(--text)}
+.step-btn.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.card{background:var(--surface);border:0.5px solid var(--border2);border-radius:16px;padding:32px;margin-bottom:12px}
+.panel{display:none}
+.panel.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-top:24px}
+.nav-btn{font-family:var(--mono);font-size:12px;padding:8px 20px;border-radius:8px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.nav-btn:hover:not(:disabled){border-color:var(--purple);color:var(--purple)}
+.nav-btn:disabled{opacity:.3;cursor:default}
+.counter{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sec{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.note{background:var(--purple-dim);border:0.5px solid rgba(139,124,248,.3);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--muted);margin-top:20px}
+.note strong{color:var(--purple)}
+.note-teal{background:var(--teal-dim);border-color:rgba(62,207,142,.3)}
+.note-teal strong{color:var(--teal)}
+.note-amber{background:var(--amber-dim);border-color:rgba(245,166,35,.3)}
+.note-amber strong{color:var(--amber)}
+
+/* matrix */
+.mx-wrap{overflow-x:auto;margin:12px 0}
+.mx{display:inline-grid;gap:3px;padding:14px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)}
+.mx-cell{font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:5px;text-align:center;border:0.5px solid var(--border2);background:var(--surface);min-width:64px;transition:all .3s;cursor:default}
+.mx-cell.q-col{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.mx-cell.k-col{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.mx-cell.v-col{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+.mx-cell.x-col{background:var(--surface2);border-color:var(--border2);color:var(--muted)}
+.mx-cell.w-cell{color:var(--muted)}
+.mx-cell.score-cell{cursor:pointer;transition:all .25s}
+.mx-cell.score-cell:hover{transform:scale(1.08);z-index:2;border-color:var(--purple)!important;color:var(--purple)!important}
+.mx-cell.selected{border-color:var(--purple)!important;box-shadow:0 0 0 1.5px var(--purple);color:var(--purple)!important}
+.mx-cell.masked{background:rgba(0,0,0,.3);border-color:var(--border);color:var(--muted);opacity:.4}
+.mx-cell.softmax-high{background:rgba(139,124,248,.35);border-color:var(--purple);color:var(--purple)}
+.mx-cell.softmax-mid{background:rgba(139,124,248,.18);border-color:rgba(139,124,248,.4);color:var(--purple)}
+.mx-cell.softmax-low{background:var(--surface2);border-color:var(--border2);color:var(--muted)}
+.mx-label{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px}
+.mx-row-label{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:right;padding-right:8px;align-self:center}
+
+/* computation detail box */
+.compute-box{background:var(--surface2);border:0.5px solid var(--border2);border-radius:10px;padding:16px;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;line-height:2}
+.compute-box .hl-q{color:var(--blue)}
+.compute-box .hl-k{color:var(--teal)}
+.compute-box .hl-v{color:var(--amber)}
+.compute-box .hl-r{color:var(--purple)}
+.compute-box .hl-w{color:var(--coral)}
+
+/* token selector */
+.tok-sel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.tok-btn{font-family:var(--mono);font-size:12px;padding:6px 16px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.tok-btn:hover{border-color:var(--purple);color:var(--purple)}
+.tok-btn.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+
+/* mode toggle */
+.mode-toggle{display:flex;gap:8px;margin:12px 0;align-items:center;flex-wrap:wrap}
+.mode-btn{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.mode-btn.active{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.mode-btn:hover:not(.active){border-color:var(--purple);color:var(--purple)}
+
+/* vec row (small inline vector display) */
+.vec{font-family:var(--mono);font-size:12px;display:inline-flex;gap:4px;flex-wrap:wrap}
+.vec-v{padding:3px 8px;border-radius:4px;border:0.5px solid}
+.v-pos{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.v-neg{background:var(--coral-dim);border-color:var(--coral);color:var(--coral)}
+
+/* step formula bar */
+.formula{font-family:var(--mono);font-size:13px;text-align:center;padding:10px;background:var(--surface2);border-radius:8px;margin:12px 0;color:var(--text)}
+
+/* matrices side by side */
+.mx-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;margin:12px 0}
+.mx-block{display:flex;flex-direction:column;align-items:center}
+.mx-title{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px;text-align:center}
+
+/* progress tracker */
+.tracker{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 20px;padding:12px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)}
+.tr-stage{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:0.5px solid var(--border2);color:var(--muted)}
+.tr-stage.done{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+.tr-stage.current{border-color:var(--purple);color:var(--purple);background:var(--purple-dim)}
+.tr-arrow{color:var(--muted);align-self:center;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="nav-links">
+  <a class="nav-link" href="encoder_explainer.html">← Энкодер</a>
+  <a class="nav-link" href="decoder_explainer.html">→ Декодер</a>
+  <a class="nav-link" href="llm_modern_explainer.html">→ Современный LLM</a>
+</div>
+<div class="label">deep learning / attention</div>
+<h1>Механизм<br><span>Attention</span> — детальный разбор</h1>
+<p class="subtitle">Полная математика Scaled Dot-Product Attention с реальными числами. d=3, 3 токена — достаточно мало, чтобы увидеть каждое перемножение.</p>
+
+<div class="step-nav" id="stepNav"></div>
+<div class="card">
+
+<!-- STEP 0: Overview + X matrix -->
+<div class="panel active" id="p0">
+  <div class="sec">шаг 1 / 7 — входные данные</div>
+  <h2>Входные векторы X</h2>
+  <p style="color:var(--muted);margin-bottom:16px">После embedding + positional encoding каждый токен — вектор размером d=3. Три токена → матрица X размером 3×3.</p>
+
+  <div class="formula">Attention(Q,K,V) = softmax( Q · Kᵀ / √d<sub>k</sub> ) · V</div>
+
+  <div class="mx-row" style="justify-content:center">
+    <div class="mx-block">
+      <div class="mx-title">X — матрица входов (3 × d=3)</div>
+      <div class="mx-wrap"><div class="mx" style="grid-template-columns:auto repeat(3,1fr)">
+        <div class="mx-cell" style="background:transparent;border-color:transparent;font-size:10px"></div>
+        <div class="mx-cell" style="color:var(--muted);font-size:10px">dim₀</div>
+        <div class="mx-cell" style="color:var(--muted);font-size:10px">dim₁</div>
+        <div class="mx-cell" style="color:var(--muted);font-size:10px">dim₂</div>
+        <div class="mx-row-label">"The"</div>
+        <div class="mx-cell x-col">+0.90</div><div class="mx-cell x-col">+0.20</div><div class="mx-cell x-col">+0.40</div>
+        <div class="mx-row-label">"cat"</div>
+        <div class="mx-cell x-col">+0.10</div><div class="mx-cell x-col">+0.80</div><div class="mx-cell x-col">+0.60</div>
+        <div class="mx-row-label">"sat"</div>
+        <div class="mx-cell x-col">+0.50</div><div class="mx-cell x-col">+0.30</div><div class="mx-cell x-col">+0.90</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0">
+    <div style="background:var(--blue-dim);border:0.5px solid var(--blue);border-radius:8px;padding:12px;text-align:center;color:var(--blue)">
+      <div style="font-family:var(--mono);font-size:16px;font-weight:700">W<sub>Q</sub></div>
+      <div style="font-size:11px;margin-top:4px">3×3, обучаемая<br>"что я ищу?"</div>
+    </div>
+    <div style="background:var(--teal-dim);border:0.5px solid var(--teal);border-radius:8px;padding:12px;text-align:center;color:var(--teal)">
+      <div style="font-family:var(--mono);font-size:16px;font-weight:700">W<sub>K</sub></div>
+      <div style="font-size:11px;margin-top:4px">3×3, обучаемая<br>"что я предлагаю?"</div>
+    </div>
+    <div style="background:var(--amber-dim);border:0.5px solid var(--amber);border-radius:8px;padding:12px;text-align:center;color:var(--amber)">
+      <div style="font-family:var(--mono);font-size:16px;font-weight:700">W<sub>V</sub></div>
+      <div style="font-size:11px;margin-top:4px">3×3, обучаемая<br>"что я отдаю?"</div>
+    </div>
+  </div>
+  <div class="note"><strong>Цель:</strong> умножить X на три весовые матрицы → Q, K, V. Затем вычислить softmax(Q·Kᵀ/√d) · V. Всё делается параллельно для всех токенов.</div>
+</div>
+
+<!-- STEP 1: Q projection -->
+<div class="panel" id="p1">
+  <div class="sec">шаг 2 / 7 — проекция Q</div>
+  <h2>Q = X · W<sub>Q</sub></h2>
+  <p style="color:var(--muted);margin-bottom:14px">Каждая строка X умножается на W<sub>Q</sub>. Выбери токен, чтобы увидеть вычисление.</p>
+
+  <div class="tok-sel" id="qTokSel"></div>
+
+  <div class="mx-row" style="justify-content:center;align-items:flex-start">
+    <div class="mx-block">
+      <div class="mx-title">X</div>
+      <div class="mx-wrap"><div class="mx" id="qXmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:20px;color:var(--muted);padding:0 4px">×</div>
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--blue)">W<sub>Q</sub></div>
+      <div class="mx-wrap"><div class="mx" id="qWmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:20px;color:var(--muted);padding:0 4px">=</div>
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--blue)">Q</div>
+      <div class="mx-wrap"><div class="mx" id="qQmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+  </div>
+  <div class="compute-box" id="qCompute"></div>
+  <div class="note"><strong>Параллелизм:</strong> на практике Q = X @ W_Q — одно матричное умножение для всех токенов. Здесь видны все три строки; мы выделяем одну для наглядности.</div>
+</div>
+
+<!-- STEP 2: K projection -->
+<div class="panel" id="p2">
+  <div class="sec">шаг 3 / 7 — проекция K</div>
+  <h2>K = X · W<sub>K</sub></h2>
+  <p style="color:var(--muted);margin-bottom:14px">K содержит "ключи" — что каждый токен предлагает другим токенам для сравнения.</p>
+
+  <div class="tok-sel" id="kTokSel"></div>
+
+  <div class="mx-row" style="justify-content:center;align-items:flex-start">
+    <div class="mx-block">
+      <div class="mx-title">X</div>
+      <div class="mx-wrap"><div class="mx" id="kXmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:20px;color:var(--muted);padding:0 4px">×</div>
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--teal)">W<sub>K</sub></div>
+      <div class="mx-wrap"><div class="mx" id="kWmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:20px;color:var(--muted);padding:0 4px">=</div>
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--teal)">K</div>
+      <div class="mx-wrap"><div class="mx" id="kKmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+  </div>
+  <div class="compute-box" id="kCompute"></div>
+  <div class="note"><strong>K vs Q:</strong> Q и K живут в одном пространстве (d_k), поэтому их dot product осмыслен. V — другое пространство, его роль — передавать информацию, а не участвовать в сравнении.</div>
+</div>
+
+<!-- STEP 3: V projection -->
+<div class="panel" id="p3">
+  <div class="sec">шаг 4 / 7 — проекция V</div>
+  <h2>V = X · W<sub>V</sub></h2>
+  <p style="color:var(--muted);margin-bottom:14px">V — "значения". После того, как веса attention определены через Q·Kᵀ, именно V-вектора складываются с найденными весами.</p>
+
+  <div class="tok-sel" id="vTokSel"></div>
+
+  <div class="mx-row" style="justify-content:center;align-items:flex-start">
+    <div class="mx-block">
+      <div class="mx-title">X</div>
+      <div class="mx-wrap"><div class="mx" id="vXmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:20px;color:var(--muted);padding:0 4px">×</div>
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--amber)">W<sub>V</sub></div>
+      <div class="mx-wrap"><div class="mx" id="vWmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:20px;color:var(--muted);padding:0 4px">=</div>
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--amber)">V</div>
+      <div class="mx-wrap"><div class="mx" id="vVmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+  </div>
+  <div class="compute-box" id="vCompute"></div>
+  <div class="note"><strong>Разделение ролей:</strong> Q·Kᵀ решает "кому уделить внимание", V решает "что именно передать". Это позволяет модели отдельно обучать паттерн внимания и содержание.</div>
+</div>
+
+<!-- STEP 4: Score matrix -->
+<div class="panel" id="p4">
+  <div class="sec">шаг 5 / 7 — оценки S = Q · Kᵀ</div>
+  <h2>Матрица оценок S = Q · K<sup>T</sup></h2>
+  <p style="color:var(--muted);margin-bottom:14px">Каждая строка = один Q-вектор. Каждый столбец = один K-вектор. S[i,j] = скалярное произведение Q[i] · K[j]. <strong style="color:var(--purple)">Нажми на ячейку</strong>, чтобы увидеть вычисление.</p>
+
+  <div class="mx-row" style="justify-content:center">
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--blue)">Q (строки)</div>
+      <div class="mx-wrap"><div class="mx" id="sQmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:16px;color:var(--muted);padding:0 4px">×</div>
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--teal)">Kᵀ (столбцы)</div>
+      <div class="mx-wrap"><div class="mx" id="sKmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:16px;color:var(--muted);padding:0 4px">=</div>
+    <div class="mx-block">
+      <div class="mx-title">S = Q·Kᵀ (нажми)</div>
+      <div class="mx-wrap"><div class="mx" id="sSmx" style="grid-template-columns:auto repeat(3,1fr)"></div></div>
+    </div>
+  </div>
+  <div class="compute-box" id="sCompute">← выбери ячейку в матрице S</div>
+  <div class="note"><strong>Интерпретация:</strong> большое S[i,j] → Q[i] и K[j] "похожи" → токен i уделит много внимания токену j. Пока это сырые числа, без нормализации.</div>
+</div>
+
+<!-- STEP 5: Scale + mask + softmax -->
+<div class="panel" id="p5">
+  <div class="sec">шаг 6 / 7 — масштаб · маска · softmax</div>
+  <h2>S_scaled = S / √d<sub>k</sub> → Mask → Softmax</h2>
+  <p style="color:var(--muted);margin-bottom:12px">Три операции: масштабирование, маскирование (только в декодере), softmax по каждой строке.</p>
+
+  <div class="mode-toggle">
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Режим:</span>
+    <button class="mode-btn active" id="modeEnc" onclick="setMode('enc')">Энкодер (без маски)</button>
+    <button class="mode-btn" id="modeDec" onclick="setMode('dec')">Декодер (каузальная маска)</button>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:12px;color:var(--muted);margin:8px 0">
+    √d<sub>k</sub> = √3 ≈ <span style="color:var(--amber)">1.732</span> &nbsp;→&nbsp; делим все оценки на 1.732
+  </div>
+
+  <div class="mx-row" style="justify-content:center;flex-wrap:wrap;gap:8px">
+    <div class="mx-block">
+      <div class="mx-title">S (raw)</div>
+      <div class="mx-wrap"><div class="mx" id="ssRawMx" style="grid-template-columns:auto repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:13px;color:var(--muted);padding:0 4px">÷√3</div>
+    <div class="mx-block">
+      <div class="mx-title">S_scaled</div>
+      <div class="mx-wrap"><div class="mx" id="ssScMx" style="grid-template-columns:auto repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:13px;color:var(--muted);padding:0 4px" id="maskArrow">+mask</div>
+    <div class="mx-block">
+      <div class="mx-title" id="ssTitle">softmax →</div>
+      <div class="mx-wrap"><div class="mx" id="ssMaskedMx" style="grid-template-columns:auto repeat(3,1fr)"></div></div>
+    </div>
+    <div style="align-self:center;font-size:13px;color:var(--muted);padding:0 4px">softmax</div>
+    <div class="mx-block">
+      <div class="mx-title" style="color:var(--purple)">Веса W</div>
+      <div class="mx-wrap"><div class="mx" id="ssWMx" style="grid-template-columns:auto repeat(3,1fr)"></div></div>
+    </div>
+  </div>
+
+  <div class="compute-box" id="ssCompute" style="margin-top:12px"></div>
+  <div class="note"><strong>Зачем делить?</strong> При больших d_k dot products растут пропорционально √d_k → градиенты softmax исчезают. Деление на √d_k стабилизирует обучение. Это единственная причина — эвристика, подтверждённая практикой.</div>
+</div>
+
+<!-- STEP 6: Weighted sum -->
+<div class="panel" id="p6">
+  <div class="sec">шаг 7 / 7 — взвешенная сумма</div>
+  <h2>Выход = W · V</h2>
+  <p style="color:var(--muted);margin-bottom:14px">Для каждого токена выход = взвешенная сумма V-векторов. Выбери токен для просмотра.</p>
+
+  <div class="tok-sel" id="outTokSel"></div>
+  <div class="mode-toggle">
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Режим:</span>
+    <button class="mode-btn active" id="outModeEnc" onclick="setOutMode('enc')">Энкодер</button>
+    <button class="mode-btn" id="outModeDec" onclick="setOutMode('dec')">Декодер</button>
+  </div>
+
+  <div class="compute-box" id="outCompute"></div>
+
+  <div style="margin-top:16px;padding:14px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
+    <div class="sec">Все выходные векторы (текущий режим)</div>
+    <div id="outAll"></div>
+  </div>
+
+  <div class="note note-teal" style="margin-top:16px"><strong>Контекстуализация:</strong> входной вектор "cat" = [0.10, 0.80, 0.60]. Выходной = взвешенная сумма V-векторов соседей. Теперь "cat" "знает" о контексте — это главная ценность attention.</div>
+</div>
+
+<!-- nav -->
+<div class="nav-row">
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← назад</button>
+  <span class="counter" id="counter">1 / 7</span>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)">далее →</button>
+</div>
+</div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────
+const TOKS = ['"The"', '"cat"', '"sat"'];
+const X  = [[0.90,0.20,0.40],[0.10,0.80,0.60],[0.50,0.30,0.90]];
+const WQ = [[0.50,0.10,0.20],[0.30,0.80,0.10],[0.10,0.40,0.60]];
+const WK = [[0.30,0.70,0.10],[0.20,0.40,0.50],[0.60,0.20,0.30]];
+const WV = [[0.60,0.20,0.10],[0.10,0.50,0.30],[0.40,0.30,0.80]];
+const Q  = [[0.55,0.41,0.44],[0.35,0.89,0.46],[0.43,0.65,0.67]];
+const K  = [[0.55,0.79,0.31],[0.55,0.51,0.59],[0.75,0.65,0.47]];
+const V  = [[0.72,0.40,0.47],[0.38,0.60,0.73],[0.69,0.52,0.86]];
+// S = Q @ K^T
+const S  = [[0.763,0.772,0.887],[1.039,0.918,1.058],[0.959,0.964,1.061]];
+const SS = [[0.441,0.446,0.512],[0.600,0.530,0.611],[0.554,0.557,0.613]]; // ÷√3
+// encoder weights (softmax over SS)
+const W_ENC = [[0.325,0.327,0.349],[0.340,0.317,0.343],[0.326,0.327,0.346]];
+// decoder weights (causal)
+const W_DEC = [[1.000,0.000,0.000],[0.517,0.483,0.000],[0.326,0.327,0.346]];
+// outputs
+const OUT_ENC = [[0.614,0.439,0.588],[0.603,0.504,0.686],[0.607,0.508,0.690]];
+const OUT_DEC = [[0.720,0.400,0.470],[0.556,0.497,0.595],[0.607,0.508,0.690]];
+
+let attMode = 'enc';
+let outMode = 'enc';
+
+// ── Nav ───────────────────────────────────────────────────────────────
+const STEPS = [
+  {id:'p0',label:'01 входные данные'},
+  {id:'p1',label:'02 проекция Q'},
+  {id:'p2',label:'03 проекция K'},
+  {id:'p3',label:'04 проекция V'},
+  {id:'p4',label:'05 оценки S'},
+  {id:'p5',label:'06 softmax'},
+  {id:'p6',label:'07 выход'},
+];
+let cur = 0;
+const nav = document.getElementById('stepNav');
+STEPS.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='step-btn'+(i===0?' active':'');
+  b.textContent=s.label; b.onclick=()=>jump(i); nav.appendChild(b);
+});
+function render(){
+  STEPS.forEach((s,i)=>{
+    document.getElementById(s.id).classList.toggle('active',i===cur);
+    nav.children[i].classList.toggle('active',i===cur);
+  });
+  document.getElementById('counter').textContent=(cur+1)+' / '+STEPS.length;
+  document.getElementById('prevBtn').disabled=cur===0;
+  document.getElementById('nextBtn').disabled=cur===STEPS.length-1;
+  if(cur===1) initProj('q');
+  if(cur===2) initProj('k');
+  if(cur===3) initProj('v');
+  if(cur===4) initScores();
+  if(cur===5) initSoftmax();
+  if(cur===6) initOut();
+}
+function go(d){cur=Math.max(0,Math.min(STEPS.length-1,cur+d));render();}
+function jump(i){cur=i;render();}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function fmt(v){return (v>=0?'+':'')+v.toFixed(3);}
+function fmtS(v){return (v>=0?'+':'')+v.toFixed(4);}
+function cell(txt, cls=''){return `<div class="mx-cell ${cls}">${txt}</div>`;}
+function vecHtml(arr, cls){return arr.map(v=>cell(fmt(v),cls)).join('');}
+function matHtml(mat, cls){return mat.map(row=>row.map(v=>cell(fmt(v),cls)).join('')).join('');}
+function sign(v){return v>=0?'v-pos':'v-neg';}
+
+// ── PROJECTION steps (Q/K/V) ──────────────────────────────────────────
+let qTok=0, kTok=0, vTok=0;
+
+function initProj(type){
+  const W = type==='q'?WQ:type==='k'?WK:WV;
+  const R = type==='q'?Q:type==='k'?K:V;
+  const cls = type==='q'?'q-col':type==='k'?'k-col':'v-col';
+  const tokVar = type==='q'?'qTok':type==='k'?'kTok':'vTok';
+  const curTok = type==='q'?qTok:type==='k'?kTok:vTok;
+
+  // Build token selector
+  const sel = document.getElementById(type+'TokSel');
+  sel.innerHTML = '';
+  TOKS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='tok-btn'+(i===curTok?' active':'');
+    b.textContent=t;
+    b.onclick=()=>{
+      if(type==='q') qTok=i; else if(type==='k') kTok=i; else vTok=i;
+      initProj(type);
+    };
+    sel.appendChild(b);
+  });
+
+  const t = curTok;
+  const resultId = type==='q'?'qQmx':type==='k'?'kKmx':'vVmx';
+
+  // X matrix — highlight selected token row
+  document.getElementById(type+'Xmx').innerHTML = X.map((row,r)=>
+    row.map(v=>cell(fmt(v), r===t?'x-col selected':'x-col')).join('')).join('');
+
+  // W matrix
+  document.getElementById(type+'Wmx').innerHTML = W.map(row=>
+    row.map(v=>cell(fmt(v),'w-cell')).join('')).join('');
+
+  // Result matrix Q/K/V — all rows, selected row highlighted
+  document.getElementById(resultId).innerHTML =
+    R.map((row,r)=>row.map(v=>cell(fmt(v), r===t?cls+' selected':cls)).join('')).join('');
+
+  // Computation detail: show full dot-product breakdown for selected token
+  const x = X[t];
+  const r = R[t];
+  let html = `<span style="color:var(--muted)">x[${t}] = ${TOKS[t]} × W<sub>${type.toUpperCase()}</sub> — побайтовое вычисление</span><br><br>`;
+  for(let d=0;d<3;d++){
+    const terms = x.map((xv,k)=>`<span class="hl-w">${fmt(xv)}</span>·${fmt(W[k][d])}`).join(' + ');
+    const prod = x.reduce((s,xv,k)=>s+xv*W[k][d],0);
+    const clsHl = type==='q'?'hl-q':type==='k'?'hl-k':'hl-v';
+    html += `dim${d}: ${terms} = <span class="${clsHl}">${fmt(prod)}</span>  (проверка: ${fmt(r[d])})<br>`;
+  }
+  html += `<br><span style="color:var(--muted)">Результат ${TOKS[t]}: [${r.map(v=>`<span class="${type==='q'?'hl-q':type==='k'?'hl-k':'hl-v'}">${fmt(v)}</span>`).join(', ')}]</span>`;
+  document.getElementById(type+'Compute').innerHTML = html;
+}
+
+// ── SCORE MATRIX ─────────────────────────────────────────────────────
+let selRow=-1, selCol=-1;
+function initScores(){
+  // Q matrix (column labels)
+  document.getElementById('sQmx').innerHTML = Q.map((row,r)=>
+    row.map(v=>cell(fmt(v),'q-col')).join('')).join('');
+  // K^T matrix (show K transposed)
+  let ktHtml='';
+  for(let d=0;d<3;d++) ktHtml += K.map(krow=>cell(fmt(krow[d]),'k-col')).join('');
+  document.getElementById('sKmx').innerHTML = ktHtml;
+  renderScoreMatrix();
+}
+function renderScoreMatrix(){
+  const hdrs = ['','The','cat','sat'];
+  let html = hdrs.map((h,i)=>i===0?cell('','',):cell(h,'k-col')).join('');
+  S.forEach((row,r)=>{
+    html += cell(TOKS[r].replace(/"/g,''),'q-col');
+    row.forEach((v,c)=>{
+      const isSel = r===selRow&&c===selCol;
+      html += `<div class="mx-cell score-cell ${isSel?'selected':''}" onclick="selectScore(${r},${c})">${fmt(v)}</div>`;
+    });
+  });
+  document.getElementById('sSmx').innerHTML = html;
+  if(selRow>=0) updateScoreDetail();
+  else document.getElementById('sCompute').innerHTML = '← нажми на ячейку в матрице S, чтобы увидеть вычисление';
+}
+function selectScore(r,c){selRow=r;selCol=c;renderScoreMatrix();}
+function updateScoreDetail(){
+  const r=selRow,c=selCol;
+  const qi=Q[r], kj=K[c];
+  let terms = qi.map((q,d)=>`<span class="hl-q">${fmt(q)}</span> × <span class="hl-k">${fmt(kj[d])}</span> = ${fmtS(q*kj[d])}`).join('<br>');
+  const total = qi.reduce((s,q,d)=>s+q*kj[d],0);
+  document.getElementById('sCompute').innerHTML =
+    `S[${r},${c}] = Q<sub>${TOKS[r]}</sub> · K<sub>${TOKS[c]}</sub><br><br>`+
+    terms + `<br>─────────────────<br>Σ = <span class="hl-r">${fmt(total)}</span>`;
+}
+
+// ── SOFTMAX ──────────────────────────────────────────────────────────
+function setMode(m){
+  attMode=m;
+  document.getElementById('modeEnc').classList.toggle('active',m==='enc');
+  document.getElementById('modeDec').classList.toggle('active',m==='dec');
+  initSoftmax();
+}
+
+function initSoftmax(){
+  const W = attMode==='enc'?W_ENC:W_DEC;
+  const masked = attMode==='dec';
+
+  const rowHdrs = TOKS.map(t=>t.replace(/"/g,''));
+  const colHdrs = TOKS.map(t=>t.replace(/"/g,''));
+
+  // Raw S
+  let rawHtml = cell('')+colHdrs.map(h=>cell(h,'k-col')).join('');
+  S.forEach((row,r)=>{
+    rawHtml += cell(rowHdrs[r],'q-col');
+    rawHtml += row.map(v=>cell(fmt(v))).join('');
+  });
+  document.getElementById('ssRawMx').innerHTML = rawHtml;
+
+  // Scaled SS
+  let scHtml = cell('')+colHdrs.map(h=>cell(h,'k-col')).join('');
+  SS.forEach((row,r)=>{
+    scHtml += cell(rowHdrs[r],'q-col');
+    scHtml += row.map((v,c)=>{
+      const msk = masked&&c>r;
+      return cell(msk?'−∞':fmt(v), msk?'masked':'');
+    }).join('');
+  });
+  document.getElementById('ssMaskedMx').innerHTML = scHtml;
+
+  // Weights
+  let wHtml = cell('')+colHdrs.map(h=>cell(h,'k-col')).join('');
+  W.forEach((row,r)=>{
+    wHtml += cell(rowHdrs[r],'q-col');
+    wHtml += row.map((v,c)=>{
+      const msk = masked&&c>r;
+      const cls = msk||v<0.05?'softmax-low':v>0.38?'softmax-high':'softmax-mid';
+      return cell(msk?'0.000':v.toFixed(3), cls);
+    }).join('');
+  });
+  document.getElementById('ssWMx').innerHTML = wHtml;
+
+  document.getElementById('maskArrow').textContent = masked?'+маска':'';
+  document.getElementById('ssTitle').textContent = masked?'после маски':'';
+
+  // Compute detail for row 1 (cat)
+  const row = SS[1];
+  const m = masked;
+  const e0=Math.exp(row[0]).toFixed(3), e1=Math.exp(row[1]).toFixed(3), e2=m?'0.000':Math.exp(row[2]).toFixed(3);
+  const sum = m?(Math.exp(row[0])+Math.exp(row[1])).toFixed(3):(Math.exp(row[0])+Math.exp(row[1])+Math.exp(row[2])).toFixed(3);
+  document.getElementById('ssCompute').innerHTML =
+    `Строка "cat":<br>`+
+    `scaled scores: [<span class="hl-q">${fmt(row[0])}</span>, <span class="hl-q">${fmt(row[1])}</span>, <span class="hl-q">${m?'−∞':fmt(row[2])}</span>]<br>`+
+    `exp:          [${e0}, ${e1}, ${e2}]<br>`+
+    `sum = ${e0} + ${e1}${m?'':(` + ${e2}`)} = <span class="hl-r">${sum}</span><br>`+
+    `weights = [<span class="hl-r">${(parseFloat(e0)/parseFloat(sum)).toFixed(3)}</span>, `+
+               `<span class="hl-r">${(parseFloat(e1)/parseFloat(sum)).toFixed(3)}</span>, `+
+               `<span class="hl-r">${m?'0.000':(parseFloat(e2)/parseFloat(sum)).toFixed(3)}</span>]`;
+}
+
+// ── OUTPUT ────────────────────────────────────────────────────────────
+let outTok = 1;
+function setOutMode(m){
+  outMode=m;
+  document.getElementById('outModeEnc').classList.toggle('active',m==='enc');
+  document.getElementById('outModeDec').classList.toggle('active',m==='dec');
+  initOut();
+}
+function initOut(){
+  const W = outMode==='enc'?W_ENC:W_DEC;
+  const OUT = outMode==='enc'?OUT_ENC:OUT_DEC;
+
+  const sel = document.getElementById('outTokSel');
+  sel.innerHTML='';
+  TOKS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='tok-btn'+(i===outTok?' active':'');
+    b.textContent=t; b.onclick=()=>{outTok=i;initOut();};
+    sel.appendChild(b);
+  });
+
+  const t=outTok;
+  const w=W[t];
+  const masked = outMode==='dec';
+
+  let html=`Выход[${TOKS[t]}] = `;
+  const parts=[];
+  V.forEach((vrow,j)=>{
+    if(masked&&j>t) return;
+    parts.push(`<span class="hl-r">${w[j].toFixed(3)}</span> × V[${TOKS[j]}]`);
+  });
+  html += parts.join(' + ') + '<br><br>';
+
+  // show each V row contribution
+  V.forEach((vrow,j)=>{
+    if(masked&&j>t){
+      html += `<span style="opacity:.3">${w[j].toFixed(3)} × [${vrow.map(v=>fmt(v)).join(', ')}] = [masked]</span><br>`;
+      return;
+    }
+    const contrib=vrow.map(v=>(v*w[j]));
+    html+=`${w[j].toFixed(3)} × [${vrow.map(v=>fmt(v)).join(', ')}] = [<span class="hl-v">${contrib.map(v=>fmt(v)).join(', ')}</span>]<br>`;
+  });
+
+  html += `<br>─────────────<br>`;
+  html += `Σ = [<span class="hl-r">${OUT[t].map(v=>fmt(v)).join(', ')}</span>]`;
+  document.getElementById('outCompute').innerHTML=html;
+
+  // All tokens output
+  let allHtml='';
+  OUT.forEach((row,r)=>{
+    allHtml+=`<div style="display:flex;align-items:center;gap:10px;margin:6px 0;font-family:var(--mono);font-size:12px">
+      <span style="color:var(--muted);width:48px">${TOKS[r]}</span>
+      <span style="color:var(--purple)">[${row.map(v=>fmt(v)).join(', ')}]</span>
+      <span style="color:var(--muted);font-size:10px">${r===t?'← выбран':''}</span>
+    </div>`;
+  });
+  document.getElementById('outAll').innerHTML=allHtml;
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+initProj('q'); initProj('k'); initProj('v');
+initScores(); initSoftmax(); initOut();
+render();
+</script>
+</body>
+</html>

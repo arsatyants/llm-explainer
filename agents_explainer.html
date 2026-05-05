@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM-агенты — от модели к агенту</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#151820;--surface2:#1c2030;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --text:#e8eaf0;--muted:#7a8099;
+  --purple:#8b7cf8;--purple-dim:rgba(139,124,248,0.12);
+  --teal:#3ecf8e;--teal-dim:rgba(62,207,142,0.12);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.12);
+  --blue:#5ba4f5;--blue-dim:rgba(91,164,245,0.12);
+  --coral:#f87171;--coral-dim:rgba(248,113,113,0.12);
+  --pink:#e879f9;--pink-dim:rgba(232,121,249,0.12);
+  --mono:'JetBrains Mono',monospace;--sans:'Manrope',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:48px 24px 80px}
+.nav-links{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.nav-link{font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;border:0.5px solid var(--border2);padding:4px 12px;border-radius:6px;transition:all .2s}
+.nav-link:hover{color:var(--purple);border-color:var(--purple)}
+.label{font-family:var(--mono);font-size:11px;color:var(--pink);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+h1{font-size:clamp(28px,5vw,46px);font-weight:700;line-height:1.1;letter-spacing:-.02em;color:#fff;margin-bottom:16px}
+h1 span{color:var(--pink)}
+h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
+.subtitle{color:var(--muted);font-size:15px;max-width:600px;line-height:1.7}
+.step-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:32px}
+.step-btn{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;letter-spacing:.05em}
+.step-btn:hover{border-color:var(--pink);color:var(--text)}
+.step-btn.active{background:var(--pink-dim);border-color:var(--pink);color:var(--pink)}
+.card{background:var(--surface);border:0.5px solid var(--border2);border-radius:16px;padding:32px;margin-bottom:12px}
+.panel{display:none}
+.panel.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-top:24px}
+.nav-btn{font-family:var(--mono);font-size:12px;padding:8px 20px;border-radius:8px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.nav-btn:hover:not(:disabled){border-color:var(--pink);color:var(--pink)}
+.nav-btn:disabled{opacity:.3;cursor:default}
+.counter{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sec{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.note{background:var(--purple-dim);border:0.5px solid rgba(139,124,248,.3);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--muted);margin-top:18px}
+.note strong{color:var(--purple)}
+.note-teal{background:var(--teal-dim);border:0.5px solid rgba(62,207,142,.3)}
+.note-teal strong{color:var(--teal)}
+.note-amber{background:var(--amber-dim);border:0.5px solid rgba(245,166,35,.3)}
+.note-amber strong{color:var(--amber)}
+.note-pink{background:var(--pink-dim);border:0.5px solid rgba(232,121,249,.3)}
+.note-pink strong{color:var(--pink)}
+
+/* comparison grid */
+.cmp2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+@media(max-width:580px){.cmp2{grid-template-columns:1fr}}
+.cmp-box{border-radius:10px;padding:14px 16px;border:0.5px solid}
+.cmp-box .era{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;opacity:.7;margin-bottom:4px}
+.cmp-box .nm{font-size:15px;font-weight:700;font-family:var(--mono);margin-bottom:6px}
+.cmp-box .desc{font-size:12px;opacity:.85;line-height:1.6}
+.cmp-old{background:var(--surface2);border-color:var(--border2);color:var(--muted)}
+.cmp-new{background:var(--pink-dim);border-color:var(--pink);color:var(--pink)}
+
+/* agent loop */
+.loop-steps{display:flex;flex-direction:column;gap:6px;margin:16px 0}
+.loop-step{border-radius:10px;padding:12px 16px;border:0.5px solid;transition:all .3s;cursor:pointer}
+.loop-step .ls-tag{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.loop-step .ls-title{font-size:14px;font-weight:700;font-family:var(--mono);margin-bottom:4px}
+.loop-step .ls-body{font-size:12px;line-height:1.6;display:none}
+.loop-step.active .ls-body{display:block}
+.loop-step.active{transform:scale(1.01)}
+.ls-think{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.ls-act{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+.ls-obs{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.ls-answer{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+
+/* ctrl row */
+.ctrl-row{display:flex;align-items:center;gap:14px;justify-content:center;margin:12px 0}
+.ctrl-btn{font-family:var(--mono);font-size:12px;padding:6px 16px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.ctrl-btn:hover:not(:disabled){border-color:var(--pink);color:var(--pink)}
+.ctrl-btn:disabled{opacity:.3;cursor:default}
+.ctrl-info{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* code block */
+.codeblock{font-family:var(--mono);font-size:12px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;padding:14px 16px;line-height:1.9;overflow-x:auto;white-space:pre;margin:10px 0}
+.ck{color:var(--muted)}
+.cv{color:var(--teal)}
+.cs{color:var(--amber)}
+.cn{color:var(--blue)}
+.cm{color:var(--muted);font-style:italic}
+.ct{color:var(--purple)}
+.ce{color:var(--coral)}
+
+/* tool tabs */
+.tool-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.tool-tab{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.tool-tab.active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+.tool-tab:hover:not(.active){border-color:var(--amber);color:var(--amber)}
+
+/* memory bars */
+.mem-track{margin:8px 0;padding:10px 14px;background:var(--surface2);border-radius:8px;border:0.5px solid var(--border2)}
+.mem-name{font-family:var(--mono);font-size:11px;margin-bottom:6px}
+.mem-bar{height:20px;border-radius:4px;background:var(--border);position:relative;overflow:visible}
+.mem-fill{height:100%;border-radius:4px;transition:width .5s}
+.mem-label{position:absolute;right:-4px;top:-22px;font-family:var(--mono);font-size:10px;white-space:nowrap}
+.mem-props{display:flex;gap:12px;margin-top:6px;flex-wrap:wrap}
+.mem-prop{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;border:0.5px solid}
+
+/* thinking block */
+.thinking-block{border-radius:10px;border:0.5px solid var(--border2);overflow:hidden;margin:12px 0}
+.thinking-header{background:var(--surface2);padding:8px 14px;font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.thinking-body{font-family:var(--mono);font-size:12px;padding:14px;line-height:1.8;border-top:0.5px solid var(--border2);color:var(--muted);display:none}
+.thinking-body.open{display:block}
+.think-line{padding:2px 0}
+.think-line.hi{color:var(--teal)}
+.think-line.q{color:var(--blue)}
+.think-line.warn{color:var(--coral)}
+
+/* multiagent */
+.ma-orch{text-align:center;padding:14px 20px;border-radius:10px;border:0.5px solid var(--pink);background:var(--pink-dim);color:var(--pink);font-family:var(--mono);font-weight:700;font-size:14px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.ma-orch:hover{background:rgba(232,121,249,.22)}
+.ma-agents{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0}
+@media(max-width:520px){.ma-agents{grid-template-columns:1fr}}
+.ma-agent{border-radius:8px;padding:11px 12px;border:0.5px solid;font-family:var(--mono);font-size:12px;text-align:center;transition:all .3s;cursor:pointer}
+.ma-agent .agent-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.ma-agent .agent-desc{font-size:10px;opacity:.8;line-height:1.4}
+.ma-agent.fired{transform:scale(1.04)}
+.ma-conn{display:flex;justify-content:space-around;padding:0 10%;margin:4px 0}
+.ma-conn-line{width:1px;height:20px;background:var(--border2)}
+.ma-result{font-family:var(--mono);font-size:12px;padding:10px 14px;background:var(--surface2);border-radius:8px;border:0.5px solid var(--border2);margin-top:8px;min-height:40px;color:var(--muted);transition:all .3s}
+
+/* slider */
+.slider-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+.slider-row label{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;min-width:120px}
+input[type=range]{flex:1;accent-color:var(--pink)}
+.slider-val{font-family:var(--mono);font-size:13px;color:var(--pink);min-width:60px;text-align:right}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="nav-links">
+  <a class="nav-link" href="index.html">← Главная</a>
+  <a class="nav-link" href="llm_modern_explainer.html">← Современный LLM</a>
+  <a class="nav-link" href="decoder_explainer.html">← Декодер</a>
+</div>
+
+<div class="label">modern ai systems · agents</div>
+<h1>LLM-агенты<br><span>с циклом обратной связи</span></h1>
+<p class="subtitle">Как Claude, GPT-4o и Gemini превращаются из «предсказателей следующего токена» в агентов, способных планировать, использовать инструменты и работать в команде.</p>
+
+<div class="step-nav" id="stepNav"></div>
+<div class="card">
+
+<!-- STEP 0: LLM → Agent -->
+<div class="panel active" id="p0">
+  <div class="sec">шаг 1 / 6</div>
+  <h2>От языковой модели к агенту</h2>
+  <p style="color:var(--muted);margin-bottom:16px">Голая LLM — это функция: текст→текст, один проход. Агент — это LLM в цикле с доступом к внешнему миру.</p>
+
+  <div class="cmp2">
+    <div class="cmp-box cmp-old">
+      <div class="era">базовая LLM</div>
+      <div class="nm">text → text</div>
+      <div class="desc">
+        Получает промпт → делает один forward pass → возвращает токены.<br><br>
+        ✓ Ответы, перефразирование, перевод<br>
+        ✗ Не знает текущее время<br>
+        ✗ Не может открыть файл<br>
+        ✗ Не помнит прошлые разговоры<br>
+        ✗ Не может проверить свой ответ
+      </div>
+    </div>
+    <div class="cmp-box cmp-new">
+      <div class="era">LLM-агент</div>
+      <div class="nm">цикл: think → act → observe</div>
+      <div class="desc">
+        LLM + инструменты + цикл обратной связи.<br><br>
+        ✓ Запускает код, видит результат<br>
+        ✓ Читает файлы, браузер, API<br>
+        ✓ Долгосрочная память (вне контекста)<br>
+        ✓ Проверяет и исправляет себя<br>
+        ✓ Делегирует подзадачи другим агентам
+      </div>
+    </div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:12px;text-align:center;padding:14px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2);margin:12px 0;line-height:2.4">
+    <span style="color:var(--muted)">Ключевая идея:</span> LLM генерирует не только ответ, но и <span style="color:var(--amber)">вызовы инструментов</span>.<br>
+    Среда исполняет инструмент и возвращает результат обратно в контекст.<br>
+    LLM снова читает контекст → решает продолжить или ответить.
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0;text-align:center">
+    <div style="padding:12px 8px;border-radius:8px;background:var(--blue-dim);border:0.5px solid var(--blue);color:var(--blue)">
+      <div style="font-family:var(--mono);font-size:20px;margin-bottom:4px">🧠</div>
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700">Think</div>
+      <div style="font-size:11px;opacity:.8;margin-top:3px">рассуждение</div>
+    </div>
+    <div style="padding:12px 8px;border-radius:8px;background:var(--amber-dim);border:0.5px solid var(--amber);color:var(--amber)">
+      <div style="font-family:var(--mono);font-size:20px;margin-bottom:4px">⚡</div>
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700">Act</div>
+      <div style="font-size:11px;opacity:.8;margin-top:3px">вызов инструмента</div>
+    </div>
+    <div style="padding:12px 8px;border-radius:8px;background:var(--teal-dim);border:0.5px solid var(--teal);color:var(--teal)">
+      <div style="font-family:var(--mono);font-size:20px;margin-bottom:4px">👁</div>
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700">Observe</div>
+      <div style="font-size:11px;opacity:.8;margin-top:3px">результат в контекст</div>
+    </div>
+    <div style="padding:12px 8px;border-radius:8px;background:var(--purple-dim);border:0.5px solid var(--purple);color:var(--purple)">
+      <div style="font-family:var(--mono);font-size:20px;margin-bottom:4px">↩</div>
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700">Repeat</div>
+      <div style="font-size:11px;opacity:.8;margin-top:3px">или ответить</div>
+    </div>
+  </div>
+
+  <div class="note note-pink"><strong>Claude, GPT-4o, Gemini:</strong> все поддерживают нативный tool use — модель обучена генерировать структурированные вызовы инструментов как часть своего вывода, а не как постпроцессинг.</div>
+</div>
+
+<!-- STEP 1: Tool use -->
+<div class="panel" id="p1">
+  <div class="sec">шаг 2 / 6</div>
+  <h2>Tool Use / Function Calling</h2>
+  <p style="color:var(--muted);margin-bottom:14px">Модели видят список доступных инструментов в системном промпте и генерируют структурированные вызовы. Выбери инструмент:</p>
+
+  <div class="tool-tabs" id="toolTabs"></div>
+  <div id="toolDemo"></div>
+
+  <div style="margin-top:16px;padding:12px 16px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
+    <div class="sec">Типичные инструменты современных агентов</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted)">
+      <div>⚡ <strong style="color:var(--text)">bash / python</strong> — выполнение кода</div>
+      <div>🌐 <strong style="color:var(--text)">web_search</strong> — поиск в интернете</div>
+      <div>📄 <strong style="color:var(--text)">read_file / write_file</strong> — работа с FS</div>
+      <div>🖥 <strong style="color:var(--text)">computer_use</strong> — управление ПК</div>
+      <div>🔌 <strong style="color:var(--text)">MCP-серверы</strong> — любое внешнее API</div>
+      <div>🧠 <strong style="color:var(--text)">memory_store</strong> — сохранить факт</div>
+    </div>
+  </div>
+
+  <div class="note note-amber"><strong>Безопасность:</strong> пользователь явно разрешает каждый инструмент. Claude никогда не запустит bash без разрешения. Tool use — сознательный выбор, а не автоматическое действие.</div>
+</div>
+
+<!-- STEP 2: Agent loop interactive -->
+<div class="panel" id="p2">
+  <div class="sec">шаг 3 / 6</div>
+  <h2>Агентный цикл — ReAct</h2>
+  <p style="color:var(--muted);margin-bottom:14px">Задача: <strong style="color:var(--text)">"Сколько файлов .py в этом репозитории и какой самый большой?"</strong> Нажимай для прохода по шагам.</p>
+
+  <div class="ctrl-row">
+    <button class="ctrl-btn" id="loopPrev" onclick="loopMove(-1)" disabled>← назад</button>
+    <span class="ctrl-info" id="loopInfo">шаг 1 / 5</span>
+    <button class="ctrl-btn" id="loopNext" onclick="loopMove(1)">вперёд →</button>
+  </div>
+
+  <div class="loop-steps" id="loopSteps"></div>
+
+  <div style="margin-top:14px;padding:12px 16px;background:var(--surface2);border-radius:8px;border:0.5px solid var(--border2);font-family:var(--mono);font-size:12px;color:var(--muted)">
+    <span style="color:var(--text)">Контекст модели растёт с каждым шагом:</span><br>
+    [system prompt + tools] + [user msg] + [think₁ + act₁ + obs₁] + [think₂ + act₂ + obs₂] + … + [answer]
+  </div>
+
+  <div class="note"><strong>ReAct (Reason + Act):</strong> паттерн, при котором модель явно рассуждает перед каждым действием. Это делает цепочку прозрачной и позволяет перехватить ошибку до исполнения.</div>
+</div>
+
+<!-- STEP 3: Extended thinking -->
+<div class="panel" id="p3">
+  <div class="sec">шаг 4 / 6</div>
+  <h2>Расширенное мышление (Extended Thinking)</h2>
+  <p style="color:var(--muted);margin-bottom:14px">Claude 3.5+ и o1/o3 выделяют отдельный «черновик» рассуждений перед финальным ответом. Это не просто CoT в промпте — это отдельный тип токенов.</p>
+
+  <div class="cmp2">
+    <div class="cmp-box cmp-old">
+      <div class="era">обычный режим</div>
+      <div class="nm">прямой ответ</div>
+      <div class="desc">Модель генерирует ответ за один проход. Рассуждения смешаны с ответом или отсутствуют. Быстро, но хуже на сложных задачах.</div>
+    </div>
+    <div class="cmp-box cmp-new">
+      <div class="era">extended thinking</div>
+      <div class="nm">&lt;thinking&gt; + ответ</div>
+      <div class="desc">Модель генерирует скрытые «думающие» токены. Может менять направление, исправлять себя. Пользователь видит только финальный ответ (или collapse-блок).</div>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:16px">Пример: "Докажи, что √2 иррационально"</div>
+
+  <div class="thinking-block" id="thinkBlock">
+    <div class="thinking-header" onclick="toggleThink()">
+      <span style="color:var(--pink)">◉</span>
+      <span style="color:var(--muted)">thinking</span>
+      <span style="font-size:10px;margin-left:auto;color:var(--muted)" id="thinkToggleLabel">▼ раскрыть</span>
+    </div>
+    <div class="thinking-body" id="thinkBody">
+      <div class="think-line">Нужно доказать от противного.</div>
+      <div class="think-line q">Предположим, что √2 = p/q, где p,q — целые, gcd(p,q)=1.</div>
+      <div class="think-line">Тогда 2 = p²/q² → p² = 2q².</div>
+      <div class="think-line hi">Значит p² чётное → p чётное → p = 2k.</div>
+      <div class="think-line">Подставляем: (2k)² = 2q² → 4k² = 2q² → q² = 2k².</div>
+      <div class="think-line hi">Значит q² чётное → q чётное.</div>
+      <div class="think-line warn">Но тогда gcd(p,q) ≥ 2 — противоречие с gcd(p,q)=1!</div>
+      <div class="think-line">Следовательно, предположение неверно. √2 иррационально. ✓</div>
+    </div>
+  </div>
+
+  <div style="padding:14px 16px;background:var(--purple-dim);border:0.5px solid rgba(139,124,248,.3);border-radius:8px;font-size:13px;color:var(--muted)">
+    <strong style="color:var(--purple)">Финальный ответ:</strong> Предположим от противного: √2 = p/q (несократимая дробь). Тогда p² = 2q², откуда p чётное, p=2k → q² = 2k² → q чётное. Но тогда НОД(p,q) ≥ 2 — противоречие. ∎
+  </div>
+
+  <div style="margin-top:14px;padding:12px 16px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
+    <div class="sec">Thinking budget — бюджет мышления</div>
+    <div class="slider-row">
+      <label>max thinking tokens</label>
+      <input type="range" min="0" max="32000" step="1000" value="8000" id="thinkSlider" oninput="updateThinkBudget(this.value)">
+      <span class="slider-val" id="thinkVal">8 000</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center" id="thinkNote">
+      ~6 страниц рассуждений · подходит для большинства задач
+    </div>
+  </div>
+  <div class="note note-pink"><strong>Важно:</strong> thinking-токены не кэшируются между запросами и стоят дороже обычных. Claude 3.7 Sonnet: до 128k thinking tokens. Используется для математики, кода, planning.</div>
+</div>
+
+<!-- STEP 4: Memory types -->
+<div class="panel" id="p4">
+  <div class="sec">шаг 5 / 6</div>
+  <h2>Типы памяти агента</h2>
+  <p style="color:var(--muted);margin-bottom:14px">Контекстное окно — главная «рабочая память», но оно конечно. Агенты комбинируют несколько типов хранения.</p>
+
+  <div class="slider-row">
+    <label>токенов в контексте</label>
+    <input type="range" min="0" max="200000" step="1000" value="50000" id="ctxSlider" oninput="updateCtx(this.value)">
+    <span class="slider-val" id="ctxVal">50 000</span>
+  </div>
+
+  <div id="memBars"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0">
+    <div style="padding:13px;border-radius:10px;background:var(--blue-dim);border:0.5px solid var(--blue)">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">In-context (рабочая)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">Всё в текущем окне. Мгновенный доступ. Теряется при завершении сессии. Claude: до 200k токенов ≈ 150k слов.</div>
+    </div>
+    <div style="padding:13px;border-radius:10px;background:var(--teal-dim);border:0.5px solid var(--teal)">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--teal);margin-bottom:6px">External (долгосрочная)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">Векторная БД, файлы, SQL. Неограниченный объём, но требует retrieval. Агент сам решает что сохранить.</div>
+    </div>
+    <div style="padding:13px;border-radius:10px;background:var(--amber-dim);border:0.5px solid var(--amber)">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--amber);margin-bottom:6px">Episodic (эпизодическая)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">Лог прошлых разговоров и действий. Подгружается по релевантности через RAG. «Что я делал с этим файлом в прошлый раз?»</div>
+    </div>
+    <div style="padding:13px;border-radius:10px;background:var(--purple-dim);border:0.5px solid var(--purple)">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--purple);margin-bottom:6px">Semantic (семантическая)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">База знаний: факты, предпочтения пользователя, контекст проекта. Claude Code: CLAUDE.md + memory-файлы.</div>
+    </div>
+  </div>
+  <div class="note note-teal"><strong>Prompt caching:</strong> Anthropic кэширует часть контекста между запросами (до 5 мин). Системный промпт + инструменты + документы = до 90% экономии стоимости на повторных вызовах.</div>
+</div>
+
+<!-- STEP 5: Multi-agent -->
+<div class="panel" id="p5">
+  <div class="sec">шаг 6 / 6</div>
+  <h2>Мульти-агентные системы</h2>
+  <p style="color:var(--muted);margin-bottom:14px">Сложные задачи разбиваются между специализированными агентами. Оркестратор планирует, субагенты исполняют параллельно.</p>
+
+  <div class="sec">Нажми на субагента, чтобы запустить задачу</div>
+
+  <div class="ma-orch" id="maOrch" onclick="fireAll()">
+    🎯 Оркестратор (Claude Opus)<br>
+    <span style="font-size:11px;font-weight:400;opacity:.8">"Проведи анализ конкурентов и подготовь отчёт"</span>
+  </div>
+
+  <div class="ma-conn">
+    <div class="ma-conn-line"></div>
+    <div class="ma-conn-line"></div>
+    <div class="ma-conn-line"></div>
+  </div>
+
+  <div class="ma-agents" id="maAgents"></div>
+
+  <div class="ma-result" id="maResult">← нажми на агента или оркестратора</div>
+
+  <div style="margin-top:18px;padding:14px 16px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
+    <div class="sec">Реальные мульти-агентные паттерны</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2">
+      <span style="color:var(--pink)">Claude Code</span> — оркестратор + субагенты для параллельного поиска по коду<br>
+      <span style="color:var(--blue)">Retrieval pipeline</span> — query → embedder → vector DB → reranker → LLM<br>
+      <span style="color:var(--teal)">Critic pattern</span> — агент-генератор + агент-критик проверяет результат<br>
+      <span style="color:var(--amber)">Speculative execution</span> — несколько агентов пробуют разные подходы параллельно
+    </div>
+  </div>
+
+  <div style="margin-top:20px;padding-top:18px;border-top:0.5px solid var(--border2)">
+    <div class="sec">Полная карта современного LLM-агента</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:2.4">
+      <span style="color:var(--text)">Пользователь</span> → <span style="color:var(--pink)">системный промпт + инструменты</span> → <span style="color:var(--blue)">LLM (think)</span><br>
+      → <span style="color:var(--amber)">[tool_use JSON]</span> → <span style="color:var(--teal)">среда исполняет</span> → <span style="color:var(--teal)">[tool_result]</span> → <span style="color:var(--blue)">LLM снова</span><br>
+      → ... (цикл) ... → <span style="color:var(--purple)">финальный ответ пользователю</span><br>
+      + <span style="color:var(--amber)">долгосрочная память</span> + <span style="color:var(--pink)">extended thinking</span> + <span style="color:var(--teal)">мульти-агенты</span>
+    </div>
+  </div>
+
+  <div class="note note-pink"><strong>MCP (Model Context Protocol):</strong> открытый стандарт Anthropic для подключения инструментов к любой модели. Сервер MCP = плагин: браузер, БД, Slack, GitHub — модель видит их как нативные инструменты.</div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← назад</button>
+  <span class="counter" id="counter">1 / 6</span>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)">далее →</button>
+</div>
+</div>
+</div>
+
+<script>
+// ── NAV ───────────────────────────────────────────────────────────────
+const STEPS = [
+  {id:'p0',label:'01 LLM→агент'},
+  {id:'p1',label:'02 tool use'},
+  {id:'p2',label:'03 ReAct цикл'},
+  {id:'p3',label:'04 thinking'},
+  {id:'p4',label:'05 память'},
+  {id:'p5',label:'06 мульти-агент'},
+];
+let cur = 0;
+const nav = document.getElementById('stepNav');
+STEPS.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='step-btn'+(i===0?' active':'');
+  b.textContent=s.label; b.onclick=()=>jump(i); nav.appendChild(b);
+});
+function render(){
+  STEPS.forEach((s,i)=>{
+    document.getElementById(s.id).classList.toggle('active',i===cur);
+    nav.children[i].classList.toggle('active',i===cur);
+  });
+  document.getElementById('counter').textContent=(cur+1)+' / '+STEPS.length;
+  document.getElementById('prevBtn').disabled=cur===0;
+  document.getElementById('nextBtn').disabled=cur===STEPS.length-1;
+  if(cur===1) initTools();
+  if(cur===2) initLoop();
+  if(cur===4) initMem();
+  if(cur===5) initMA();
+}
+function go(d){cur=Math.max(0,Math.min(STEPS.length-1,cur+d));render();}
+function jump(i){cur=i;render();}
+
+// ── TOOLS ─────────────────────────────────────────────────────────────
+const TOOLS = [
+  {name:'bash', label:'bash',
+   req:`{
+  <ck>"type"</ck>: <cs>"tool_use"</cs>,
+  <ck>"id"</ck>: <cs>"tu_01"</cs>,
+  <ck>"name"</ck>: <cs>"bash"</cs>,
+  <ck>"input"</ck>: {
+    <ck>"command"</ck>: <cs>"find . -name '*.py' | wc -l"</cs>
+  }
+}`,
+   res:`{
+  <ck>"type"</ck>: <cs>"tool_result"</cs>,
+  <ck>"tool_use_id"</ck>: <cs>"tu_01"</cs>,
+  <ck>"content"</ck>: <cs>"42"</cs>
+}`,
+   note:'Модель видит "42" в контексте и продолжает рассуждение.'},
+
+  {name:'web_search', label:'web search',
+   req:`{
+  <ck>"type"</ck>: <cs>"tool_use"</cs>,
+  <ck>"name"</ck>: <cs>"web_search"</cs>,
+  <ck>"input"</ck>: {
+    <ck>"query"</ck>: <cs>"Claude 3.7 Sonnet benchmark results"</cs>,
+    <ck>"max_results"</ck>: <cn>5</cn>
+  }
+}`,
+   res:`{
+  <ck>"results"</ck>: [
+    { <ck>"title"</ck>: <cs>"Claude 3.7 Sonnet achieves..."</cs>,
+      <ck>"url"</ck>: <cs>"https://anthropic.com/..."</cs>,
+      <ck>"snippet"</ck>: <cs>"scores 70.3% on SWE-bench..."</cs> }
+  ]
+}`,
+   note:'Результат поиска добавляется в контекст как tool_result.'},
+
+  {name:'read_file', label:'read file',
+   req:`{
+  <ck>"type"</ck>: <cs>"tool_use"</cs>,
+  <ck>"name"</ck>: <cs>"read_file"</cs>,
+  <ck>"input"</ck>: {
+    <ck>"path"</ck>: <cs>"src/model.py"</cs>,
+    <ck>"offset"</ck>: <cn>0</cn>,
+    <ck>"limit"</ck>: <cn>100</cn>
+  }
+}`,
+   res:`{
+  <ck>"content"</ck>: <cs>"import torch\\nclass Transformer(nn.Module):\\n  def __init__(self, d_model=768,..."</cs>,
+  <ck>"line_count"</ck>: <cn>342</cn>
+}`,
+   note:'Файл читается побайтово, результат — строка в контексте.'},
+
+  {name:'computer_use', label:'computer use',
+   req:`{
+  <ck>"type"</ck>: <cs>"tool_use"</cs>,
+  <ck>"name"</ck>: <cs>"computer"</cs>,
+  <ck>"input"</ck>: {
+    <ck>"action"</ck>: <cs>"screenshot"</cs>
+  }
+}`,
+   res:`{
+  <ck>"type"</ck>: <cs>"tool_result"</cs>,
+  <ck>"content"</ck>: [
+    { <ck>"type"</ck>: <cs>"image"</cs>,
+      <ck>"source"</ck>: { <ck>"type"</ck>: <cs>"base64"</cs>,
+                <ck>"data"</ck>: <cs>"iVBORw0KGgo..."</cs> } }
+  ]
+}`,
+   note:'Модель видит скриншот как обычное изображение и решает следующее действие.'},
+];
+
+let curTool = 0;
+function initTools(){
+  const tabs = document.getElementById('toolTabs');
+  tabs.innerHTML = '';
+  TOOLS.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='tool-tab'+(i===curTool?' active':'');
+    b.textContent=t.label; b.onclick=()=>{curTool=i;initTools();};
+    tabs.appendChild(b);
+  });
+  const t = TOOLS[curTool];
+  document.getElementById('toolDemo').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0">
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">→ Модель генерирует</div>
+        <div class="codeblock">${t.req}</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">← Среда возвращает</div>
+        <div class="codeblock">${t.res}</div>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:6px;border:0.5px solid var(--border2)">${t.note}</div>`;
+}
+
+// ── LOOP ─────────────────────────────────────────────────────────────
+const LOOP_STEPS = [
+  {cls:'ls-think', tag:'Think 🧠', title:'Планирование',
+   body:`Нужно: 1) найти все .py файлы, 2) найти самый большой.
+Сначала подсчитаю количество через find + wc.`},
+  {cls:'ls-act', tag:'Act ⚡', title:'Вызов инструмента #1',
+   body:`bash("find . -name '*.py' | wc -l")\n→ ожидаю число файлов`},
+  {cls:'ls-obs', tag:'Observe 👁', title:'Результат #1',
+   body:`tool_result: "42"\nВ репозитории 42 файла Python. Теперь найду самый большой.`},
+  {cls:'ls-act', tag:'Act ⚡', title:'Вызов инструмента #2',
+   body:`bash("find . -name '*.py' -exec wc -l {} + | sort -rn | head -3")\n→ ожидаю топ-3 по строкам`},
+  {cls:'ls-obs', tag:'Observe 👁', title:'Результат #2',
+   body:`tool_result: "2847 src/model.py\\n1203 src/train.py\\n891 utils/data.py"`},
+  {cls:'ls-think', tag:'Think 🧠', title:'Достаточно данных',
+   body:`Есть всё необходимое: 42 файла, самый большой — src/model.py (2847 строк). Готов ответить.`},
+  {cls:'ls-answer', tag:'Answer ✓', title:'Финальный ответ',
+   body:`В репозитории **42 файла Python**. Самый большой — \`src/model.py\` (2 847 строк).`},
+];
+let loopCur = 0;
+
+function loopMove(d){
+  loopCur = Math.max(0,Math.min(LOOP_STEPS.length-1,loopCur+d));
+  renderLoop();
+}
+
+function initLoop(){ loopCur=0; renderLoop(); }
+function renderLoop(){
+  document.getElementById('loopPrev').disabled = loopCur===0;
+  document.getElementById('loopNext').disabled = loopCur===LOOP_STEPS.length-1;
+  document.getElementById('loopInfo').textContent = `шаг ${loopCur+1} / ${LOOP_STEPS.length}`;
+  const el = document.getElementById('loopSteps');
+  el.innerHTML = '';
+  LOOP_STEPS.slice(0,loopCur+1).forEach((s,i)=>{
+    const isActive = i===loopCur;
+    const div = document.createElement('div');
+    div.className=`loop-step ${s.cls}${isActive?' active':''}`;
+    div.style.opacity = isActive?'1':'0.55';
+    div.innerHTML=`<div class="ls-tag">${s.tag}</div><div class="ls-title">${s.title}</div>${isActive?`<div class="ls-body" style="display:block">${s.body}</div>`:''}`;
+    div.onclick=()=>{loopCur=i;renderLoop();};
+    el.appendChild(div);
+  });
+}
+
+// ── THINKING ─────────────────────────────────────────────────────────
+function toggleThink(){
+  const body = document.getElementById('thinkBody');
+  const label = document.getElementById('thinkToggleLabel');
+  body.classList.toggle('open');
+  label.textContent = body.classList.contains('open') ? '▲ свернуть' : '▼ раскрыть';
+}
+
+function updateThinkBudget(v){
+  v = parseInt(v);
+  document.getElementById('thinkVal').textContent = v.toLocaleString('ru');
+  const notes = [
+    [0,'0 — thinking отключён, прямой ответ'],
+    [2000,'~1-2 страницы · простые задачи'],
+    [8000,'~6 страниц · большинство задач'],
+    [16000,'~12 страниц · сложный код / math'],
+    [32000,'~25 страниц · очень сложный reasoning'],
+  ];
+  const n = notes.reduce((a,b)=>Math.abs(b[0]-v)<Math.abs(a[0]-v)?b:a);
+  document.getElementById('thinkNote').textContent = n[1];
+}
+
+// ── MEMORY ────────────────────────────────────────────────────────────
+function updateCtx(v){
+  v = parseInt(v);
+  document.getElementById('ctxVal').textContent = v.toLocaleString('ru');
+  renderMemBars(v);
+}
+
+function initMem(){ renderMemBars(50000); }
+function renderMemBars(used){
+  const MAX = 200000;
+  const pct = used/MAX*100;
+  const free = MAX-used;
+  document.getElementById('memBars').innerHTML = `
+    <div class="mem-track">
+      <div class="mem-name" style="color:var(--blue)">Контекстное окно (Claude) — 200 000 токенов</div>
+      <div style="position:relative;padding-top:24px">
+        <div class="mem-bar">
+          <div class="mem-fill" style="width:${pct}%;background:var(--blue)"></div>
+          <div class="mem-label" style="color:var(--blue)">${(used/1000).toFixed(0)}k использовано</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px">
+        <span style="color:var(--blue)">${(used/1000).toFixed(0)}k токенов в контексте ≈ ${Math.round(used*0.75/1000)}k слов</span>
+        <span>${(free/1000).toFixed(0)}k свободно</span>
+      </div>
+      <div class="mem-props" style="margin-top:8px">
+        <span class="mem-prop" style="border-color:var(--blue);color:var(--blue)">скорость: мгновенно</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">стоимость: ${(used*0.000015).toFixed(3)}$ input</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">персистентность: в рамках сессии</span>
+      </div>
+    </div>
+    <div class="mem-track" style="margin-top:8px">
+      <div class="mem-name" style="color:var(--teal)">Внешняя память (векторная БД)</div>
+      <div style="position:relative;padding-top:24px">
+        <div class="mem-bar">
+          <div class="mem-fill" style="width:100%;background:var(--teal);opacity:.6"></div>
+          <div class="mem-label" style="color:var(--teal)">∞ неограниченно</div>
+        </div>
+      </div>
+      <div class="mem-props" style="margin-top:8px">
+        <span class="mem-prop" style="border-color:var(--teal);color:var(--teal)">скорость: ~50-200ms retrieval</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">объём: неограниченно</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">персистентность: постоянно</span>
+      </div>
+    </div>
+    <div class="mem-track" style="margin-top:8px">
+      <div class="mem-name" style="color:var(--amber)">Prompt cache (Anthropic) — до 5 минут</div>
+      <div style="position:relative;padding-top:24px">
+        <div class="mem-bar">
+          <div class="mem-fill" style="width:${Math.min(pct,80)}%;background:var(--amber);opacity:.7"></div>
+          <div class="mem-label" style="color:var(--amber)">кэшируемая часть</div>
+        </div>
+      </div>
+      <div class="mem-props" style="margin-top:8px">
+        <span class="mem-prop" style="border-color:var(--amber);color:var(--amber)">экономия: до 90% стоимости</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">TTL: 5 минут</span>
+      </div>
+    </div>`;
+}
+
+// ── MULTI-AGENT ───────────────────────────────────────────────────────
+const MA_AGENTS = [
+  {cls:'ph1', color:'var(--blue)', name:'🔍 Researcher',
+   task:'Собирает данные о конкурентах через web_search',
+   result:'Найдено 12 конкурентов. Ключевые: A (рост 40%), B (новый продукт), C (снижение цен).'},
+  {cls:'ph2', color:'var(--amber)', name:'📊 Analyst',
+   task:'Анализирует данные, строит сравнительную таблицу',
+   result:'Матрица SWOT готова. Наше преимущество: time-to-market. Риск: ценовое давление от C.'},
+  {cls:'ph3', color:'var(--teal)', name:'✍️ Writer',
+   task:'Пишет исполнительское резюме отчёта',
+   result:'Отчёт 3 страницы готов. Ключевой вывод: фокус на enterprise-сегмент.'},
+];
+
+let maFired = new Set();
+function initMA(){
+  maFired = new Set();
+  renderMA();
+}
+function renderMA(){
+  const el = document.getElementById('maAgents');
+  el.innerHTML = MA_AGENTS.map((a,i)=>`
+    <div class="ma-agent ${maFired.has(i)?'fired':''}"
+         style="background:${maFired.has(i)?`${a.color}20`:'var(--surface2)'};border-color:${maFired.has(i)?a.color:'var(--border2)'};color:${maFired.has(i)?a.color:'var(--muted)'}"
+         onclick="fireAgent(${i})">
+      <div class="agent-name">${a.name}</div>
+      <div class="agent-desc">${a.task}</div>
+      ${maFired.has(i)?`<div style="margin-top:6px;font-size:10px;opacity:.8">✓ завершён</div>`:''}
+    </div>`).join('');
+  const results = [...maFired].map(i=>MA_AGENTS[i].result);
+  const res = document.getElementById('maResult');
+  if(results.length===0){
+    res.textContent='← нажми на агента или оркестратора';
+    res.style.color='var(--muted)';
+  } else if(maFired.size===MA_AGENTS.length){
+    res.innerHTML=`<span style="color:var(--pink)">Оркестратор синтезирует:</span><br>${results.join('<br>')}`;
+  } else {
+    res.innerHTML=results.map(r=>`<span style="color:var(--teal)">✓</span> ${r}`).join('<br>');
+  }
+}
+function fireAgent(i){
+  maFired.add(i);
+  renderMA();
+}
+function fireAll(){
+  MA_AGENTS.forEach((_,i)=>maFired.add(i));
+  renderMA();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+initTools();
+initLoop();
+initMem();
+initMA();
+render();
+</script>
+</body>
+</html>

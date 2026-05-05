@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Современный LLM — как это работает</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #151820;
+  --surface2: #1c2030;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e8eaf0;
+  --muted: #7a8099;
+  --purple: #8b7cf8;
+  --purple-dim: rgba(139,124,248,0.12);
+  --teal: #3ecf8e;
+  --teal-dim: rgba(62,207,142,0.12);
+  --amber: #f5a623;
+  --amber-dim: rgba(245,166,35,0.12);
+  --blue: #5ba4f5;
+  --blue-dim: rgba(91,164,245,0.12);
+  --coral: #f87171;
+  --coral-dim: rgba(248,113,113,0.12);
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Manrope', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:48px 24px 80px}
+.header{margin-bottom:56px}
+.back-link{font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;border:0.5px solid var(--border2);padding:4px 12px;border-radius:6px;display:inline-block;margin-bottom:20px;transition:all .2s}
+.back-link:hover{color:var(--purple);border-color:var(--purple)}
+.label{font-family:var(--mono);font-size:11px;color:var(--purple);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px}
+h1{font-size:clamp(28px,5vw,48px);font-weight:700;line-height:1.1;letter-spacing:-0.02em;color:#fff;margin-bottom:16px}
+h1 span{color:var(--purple)}
+h2{font-size:22px;font-weight:700;margin-bottom:8px;color:#fff}
+.subtitle{color:var(--muted);font-size:15px;max-width:560px;line-height:1.7}
+.step-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:32px}
+.step-btn{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;letter-spacing:0.05em}
+.step-btn:hover{border-color:var(--purple);color:var(--text)}
+.step-btn.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.card{background:var(--surface);border:0.5px solid var(--border2);border-radius:16px;padding:32px;margin-bottom:12px}
+.panel{display:none}
+.panel.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-top:24px}
+.nav-btn{font-family:var(--mono);font-size:12px;padding:8px 20px;border-radius:8px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.nav-btn:hover:not(:disabled){border-color:var(--purple);color:var(--purple)}
+.nav-btn:disabled{opacity:0.3;cursor:default}
+.counter{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sec{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:12px}
+.note{background:var(--purple-dim);border:0.5px solid rgba(139,124,248,0.3);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--muted);margin-top:20px}
+.note strong{color:var(--purple)}
+.note-teal{background:var(--teal-dim);border:0.5px solid rgba(62,207,142,0.3)}
+.note-teal strong{color:var(--teal)}
+.note-amber{background:var(--amber-dim);border:0.5px solid rgba(245,166,35,0.3)}
+.note-amber strong{color:var(--amber)}
+
+/* arch cards */
+.arch-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:20px 0}
+@media(max-width:600px){.arch-grid{grid-template-columns:1fr}}
+.arch-card{border-radius:12px;padding:16px;border:0.5px solid}
+.arch-card .arch-name{font-size:14px;font-weight:700;font-family:var(--mono);margin-bottom:4px}
+.arch-card .arch-model{font-size:11px;margin-bottom:8px;opacity:0.7}
+.arch-card .arch-badge{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:10px}
+.arch-card .arch-tasks{font-size:11px;opacity:0.8;line-height:1.8;text-align:left}
+.arch-enc{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.arch-dec{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.arch-s2s{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+
+/* mask */
+.mask-cell{width:66px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;border:0.5px solid;transition:background .35s,border-color .35s,opacity .35s}
+.mask-allowed{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.mask-blocked{background:var(--surface2);border-color:var(--border2);color:var(--muted);opacity:0.35}
+.toggle-btn{font-family:var(--mono);font-size:12px;padding:8px 20px;border-radius:8px;border:0.5px solid var(--purple);background:var(--purple-dim);color:var(--purple);cursor:pointer;transition:all .2s;margin:12px auto;display:block}
+.toggle-btn:hover{background:rgba(139,124,248,0.25)}
+
+/* sampling */
+.slider-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+.slider-row label{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;min-width:110px}
+input[type=range]{flex:1;accent-color:var(--purple)}
+.slider-val{font-family:var(--mono);font-size:13px;color:var(--purple);min-width:44px;text-align:right}
+.gen-output{font-family:var(--mono);font-size:14px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;padding:14px 18px;margin:16px 0;line-height:2}
+.gen-token{display:inline;padding:2px 5px;border-radius:3px}
+.gen-new{background:var(--purple-dim);color:var(--purple);border:0.5px solid rgba(139,124,248,0.35);animation:pop .35s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes pop{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+.bar-row{display:flex;align-items:center;gap:10px;margin:5px 0}
+.bar-lbl{font-family:var(--mono);font-size:12px;color:var(--text);width:96px;flex-shrink:0}
+.bar-track{flex:1;height:22px;background:var(--surface2);border-radius:4px;overflow:hidden;border:0.5px solid var(--border2);position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width .35s ease;display:flex;align-items:center;padding-left:8px}
+.bar-pct{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.85)}
+.bar-excluded{opacity:0.22}
+
+/* kv */
+.kv-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:16px 0}
+.kv-table th{padding:8px 10px;background:var(--surface2);border:0.5px solid var(--border2);color:var(--muted);font-weight:500;text-align:center;font-size:11px}
+.kv-table td{padding:8px 10px;border:0.5px solid var(--border2);text-align:center;transition:all .3s}
+.kv-cached{background:var(--teal-dim);color:var(--teal)}
+.kv-new{background:var(--amber-dim);color:var(--amber)}
+.kv-future{background:transparent;color:var(--muted);opacity:0.3}
+.ctrl-row{display:flex;align-items:center;gap:14px;justify-content:center;margin:14px 0}
+.ctrl-btn{font-family:var(--mono);font-size:12px;padding:6px 16px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.ctrl-btn:hover:not(:disabled){border-color:var(--teal);color:var(--teal)}
+.ctrl-btn:disabled{opacity:0.3;cursor:default}
+.ctrl-info{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* compare */
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:600px){.cmp-grid{grid-template-columns:1fr}}
+.cmp-box{border-radius:10px;padding:13px 16px;border:0.5px solid}
+.cmp-box .cmp-era{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;opacity:.7}
+.cmp-box .cmp-name{font-size:14px;font-weight:700;font-family:var(--mono);margin-bottom:4px}
+.cmp-box .cmp-desc{font-size:12px;opacity:.85;line-height:1.55}
+.cmp-old{background:var(--surface2);border-color:var(--border2);color:var(--muted)}
+.cmp-new{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+
+/* gqa */
+.gqa-wrap{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:16px 0}
+.gqa-col{text-align:center}
+.gqa-col-title{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4}
+.gqa-heads-row{display:flex;gap:6px;justify-content:center}
+.gqa-q-col{display:flex;flex-direction:column;gap:3px}
+.gqa-kv-col{display:flex;flex-direction:column;gap:3px}
+.gqa-q-head{width:36px;height:22px;border-radius:4px;background:var(--blue-dim);border:0.5px solid var(--blue);color:var(--blue);font-family:var(--mono);font-size:9px;display:flex;align-items:center;justify-content:center}
+.gqa-kv-head{width:36px;border-radius:4px;background:var(--teal-dim);border:0.5px solid var(--teal);color:var(--teal);font-family:var(--mono);font-size:9px;display:flex;align-items:center;justify-content:center}
+.gqa-stat{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px}
+
+/* scale */
+.scale-row{display:flex;align-items:center;gap:10px;margin:7px 0;padding:8px 12px;background:var(--surface2);border-radius:8px;border:0.5px solid var(--border2)}
+.scale-name{font-family:var(--mono);font-size:11px;width:116px;flex-shrink:0}
+.scale-track{flex:1;background:var(--border);border-radius:3px;height:18px;overflow:visible;position:relative}
+.scale-fill{height:100%;border-radius:3px;position:absolute;left:0;top:0}
+.scale-label{position:absolute;left:6px;top:1px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.8);white-space:nowrap;line-height:16px}
+.scale-tokens{font-family:var(--mono);font-size:10px;color:var(--muted);width:54px;text-align:right;flex-shrink:0}
+
+/* arch selector */
+.arch-cat{margin-bottom:16px;border:0.5px solid var(--border2);border-radius:12px;overflow:hidden}
+.arch-cat-hdr{background:var(--surface2);padding:10px 16px;font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:0.5px solid var(--border2)}
+.arch-tabs{display:flex;gap:6px;padding:12px 14px;flex-wrap:wrap;background:var(--surface)}
+.arch-tab{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:6px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.arch-tab:hover{border-color:var(--purple);color:var(--text)}
+.arch-tab.sel{color:var(--bg);font-weight:700}
+.arch-detail{padding:14px 16px;border-top:0.5px solid var(--border2);display:none;animation:fadeUp .25s ease}
+.arch-detail.open{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
+@media(max-width:560px){.arch-detail.open{grid-template-columns:1fr}}
+.arch-formula{font-family:var(--mono);font-size:12px;padding:8px 12px;background:var(--surface2);border-radius:6px;border:0.5px solid var(--border2);color:var(--text);margin:8px 0;white-space:pre}
+.arch-models{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px}
+.arch-insight{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.arch-chips{display:flex;gap:6px;flex-wrap:wrap}
+.arch-chip{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;border:0.5px solid}
+.arch-chip.pro{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.arch-chip.con{background:var(--coral-dim);border-color:var(--coral);color:var(--coral)}
+
+/* rlhf */
+.rlhf-phase{border-radius:10px;padding:14px 18px;border:0.5px solid;margin-bottom:8px;cursor:pointer;transition:opacity .25s,transform .25s}
+.rlhf-phase:hover{opacity:1!important}
+.rlhf-phase .ph-num{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;opacity:.7}
+.rlhf-phase .ph-name{font-size:14px;font-weight:700;font-family:var(--mono);margin-bottom:4px}
+.rlhf-phase .ph-desc{font-size:12px;opacity:.85;line-height:1.6;margin-top:6px}
+.ph1{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.ph2{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+.ph3{background:var(--coral-dim);border-color:var(--coral);color:var(--coral)}
+.ph4{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <a class="back-link" href="encoder_explainer.html">← Часть 1: Энкодер</a>
+  <div class="label">deep learning / nlp — часть 2</div>
+  <h1>Современный<br><span>LLM</span> — как это работает</h1>
+  <p class="subtitle">Декодер, авторегрессия, KV-кэш, современные архитектурные блоки (RoPE, RMSNorm, SwiGLU, GQA) и RLHF — шаг за шагом.</p>
+</div>
+
+<div class="step-nav" id="stepNav"></div>
+
+<div class="card">
+
+<!-- STEP 0 -->
+<div class="panel active" id="p0">
+  <div class="sec">шаг 1 / 7</div>
+  <h2>Три семейства архитектур</h2>
+  <p style="color:var(--muted);margin-bottom:20px">Все современные LLM — варианты трансформера. Главное отличие — тип attention.</p>
+
+  <div class="arch-grid">
+    <div class="arch-card arch-enc">
+      <div class="arch-name">Encoder-only</div>
+      <div class="arch-model">BERT, RoBERTa</div>
+      <div class="arch-badge" style="background:var(--blue-dim)">двунаправленный</div>
+      <div class="arch-tasks">
+        ✓ Классификация<br>
+        ✓ NER / POS-теггинг<br>
+        ✓ Семантический поиск<br>
+        ✗ Генерация текста
+      </div>
+    </div>
+    <div class="arch-card arch-dec">
+      <div class="arch-name">Decoder-only</div>
+      <div class="arch-model">GPT-4, Llama, Mistral</div>
+      <div class="arch-badge" style="background:var(--purple-dim)">каузальный →</div>
+      <div class="arch-tasks">
+        ✓ Генерация текста<br>
+        ✓ Чат-боты, ассистенты<br>
+        ✓ Код, reasoning<br>
+        ✓ Few-shot learning
+      </div>
+    </div>
+    <div class="arch-card arch-s2s">
+      <div class="arch-name">Encoder-Decoder</div>
+      <div class="arch-model">T5, BART, mT5</div>
+      <div class="arch-badge" style="background:var(--teal-dim)">полный + кросс</div>
+      <div class="arch-tasks">
+        ✓ Машинный перевод<br>
+        ✓ Суммаризация<br>
+        ✓ Q&amp;A с контекстом<br>
+        ✓ Seq2seq задачи
+      </div>
+    </div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:14px;background:var(--surface2);border-radius:8px;line-height:2;text-align:center">
+    <span style="color:var(--text)">Тренд 2023+:</span> декодеры вытеснили остальных — GPT-4, Claude, Llama, Gemini<br>
+    <span style="color:var(--purple)">Почему?</span> Предобучение = next-token prediction → учится на любом тексте без разметки
+  </div>
+  <div class="note"><strong>Ключевое отличие:</strong> энкодер видит весь контекст сразу (полезно для понимания), декодер — только прошлое (необходимо для генерации: иначе модель просто "подсматривает").</div>
+</div>
+
+<!-- STEP 1 -->
+<div class="panel" id="p1">
+  <div class="sec">шаг 2 / 7</div>
+  <h2>Каузальное маскирование</h2>
+  <p style="color:var(--muted);margin-bottom:16px">Декодер запрещает каждому токену "видеть" будущее через маску в матрице внимания.</p>
+
+  <button class="toggle-btn" onclick="toggleMask()">⇄ Переключить: Энкодер ↔ Декодер</button>
+  <div style="font-family:var(--mono);font-size:12px;color:var(--purple);text-align:center;margin-bottom:14px" id="maskModeLabel">Режим: Декодер (каузальный)</div>
+
+  <div style="display:flex;gap:16px;justify-content:center;margin-bottom:12px">
+    <span style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)">
+      <span style="width:16px;height:16px;background:var(--purple-dim);border:0.5px solid var(--purple);border-radius:3px;display:inline-block"></span>разрешено
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)">
+      <span style="width:16px;height:16px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:3px;display:inline-block;opacity:0.4"></span>заблокировано
+    </span>
+  </div>
+
+  <div style="overflow-x:auto">
+    <div id="maskContainer" style="display:inline-block;min-width:100%"></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin-top:12px" id="maskNote">
+    "sat" (поз. 2) видит только "The", "cat", "sat" — не "on" и не "mat"
+  </div>
+  <div class="note"><strong>Реализация:</strong> заблокированным позициям добавляется −∞ к логитам перед softmax → вес = 0. Весь декодер обучается параллельно: будущее скрыто маской, а не последовательностью шагов.</div>
+</div>
+
+<!-- STEP 2 -->
+<div class="panel" id="p2">
+  <div class="sec">шаг 3 / 7</div>
+  <h2>Авторегрессия и сэмплинг</h2>
+  <p style="color:var(--muted);margin-bottom:14px">Модель генерирует по одному токену. Параметры сэмплинга меняют форму распределения.</p>
+
+  <div class="gen-output" id="genOutput">The cat sat on the <span id="genLatest" style="font-family:var(--mono)">___</span></div>
+
+  <div class="slider-row">
+    <label>temperature</label>
+    <input type="range" min="0.1" max="2.0" step="0.1" value="1.0" id="tempSlider" oninput="updateSampling()">
+    <span class="slider-val" id="tempVal">1.0</span>
+  </div>
+  <div style="font-size:11px;color:var(--muted);text-align:center;font-family:var(--mono);margin:-4px 0 8px" id="tempNote">→ сбалансированное распределение</div>
+  <div class="slider-row">
+    <label>top-k</label>
+    <input type="range" min="1" max="8" step="1" value="8" id="topkSlider" oninput="updateSampling()">
+    <span class="slider-val" id="topkVal">все</span>
+  </div>
+  <div class="slider-row">
+    <label>top-p (nucleus)</label>
+    <input type="range" min="0.1" max="1.0" step="0.05" value="1.0" id="toppSlider" oninput="updateSampling()">
+    <span class="slider-val" id="toppVal">1.00</span>
+  </div>
+
+  <div id="tokenBars" style="margin:16px 0"></div>
+
+  <div style="text-align:center">
+    <button class="toggle-btn" onclick="sampleToken()" style="margin:0">⚂ Сэмплировать токен</button>
+  </div>
+  <div class="note"><strong>Параметры:</strong> temperature &lt; 1 → острее (детерминированнее); &gt; 1 → случайнее. top-k оставляет k лучших. top-p (nucleus) оставляет минимальный набор с суммарной вероятностью ≥ p. Оба применяются вместе.</div>
+</div>
+
+<!-- STEP 3 -->
+<div class="panel" id="p3">
+  <div class="sec">шаг 4 / 7</div>
+  <h2>KV-кэш</h2>
+  <p style="color:var(--muted);margin-bottom:14px">При инференсе K и V для прошлых токенов не меняются — их достаточно закэшировать один раз.</p>
+
+  <div style="font-family:var(--mono);font-size:12px;text-align:center;color:var(--muted);margin-bottom:6px">
+    Генерируем токены: <span style="color:var(--text)">"The" → "cat" → "sat" → "on" → "mat"</span>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="ctrl-btn" id="kvPrevBtn" onclick="kvMove(-1)" disabled>← назад</button>
+    <span class="ctrl-info" id="kvInfo">шаг 1 / 5</span>
+    <button class="ctrl-btn" id="kvNextBtn" onclick="kvMove(1)">вперёд →</button>
+  </div>
+
+  <div style="overflow-x:auto">
+    <table class="kv-table" id="kvTable"></table>
+  </div>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:10px 0;font-family:var(--mono);font-size:11px">
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--teal-dim);border:0.5px solid var(--teal);border-radius:3px"></span><span style="color:var(--teal)">кэш — не вычислять</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--amber-dim);border:0.5px solid var(--amber);border-radius:3px"></span><span style="color:var(--amber)">вычислить сейчас</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:3px;opacity:0.4"></span><span style="color:var(--muted)">ещё не нужен</span></span>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:12px;text-align:center;padding:10px 14px;background:var(--surface2);border-radius:8px" id="kvStats"></div>
+  <div class="note note-teal"><strong>Выигрыш:</strong> без кэша генерация N токенов → O(N²) вычислений. С кэшем → O(N). Для контекстов 128k+ — разница в скорости в десятки раз. Цена: память GPU для хранения всех K,V.</div>
+</div>
+
+<!-- STEP 4 -->
+<div class="panel" id="p4">
+  <div class="sec">шаг 5 / 7</div>
+  <h2>Архитектурные блоки — выбери вариант</h2>
+  <p style="color:var(--muted);margin-bottom:18px">Каждый компонент трансформера можно реализовать несколькими способами. Нажми на вариант — увидишь формулу, модели и плюсы/минусы.</p>
+  <div id="archSelector"></div>
+</div>
+
+<!-- STEP 5 -->
+<div class="panel" id="p5">
+  <div class="sec">шаг 6 / 7</div>
+  <h2>Предобучение и масштабирование</h2>
+  <p style="color:var(--muted);margin-bottom:18px">LLM обучаются предсказывать следующий токен на триллионах токенов текста.</p>
+
+  <div style="background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:20px;text-align:center">
+    <div class="sec" style="margin-bottom:8px">Цель обучения: cross-entropy по следующему токену</div>
+    <div style="font-family:var(--mono);font-size:14px;color:var(--text);padding:8px 0">
+      L = −(1/T) · Σ log P(x<sub>t</sub> | x<sub>1</sub>, …, x<sub>t−1</sub>)
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">Обучается на любом тексте без разметки — self-supervised learning.</div>
+  </div>
+
+  <div class="sec">Масштаб современных моделей (логарифмическая шкала параметров)</div>
+  <div id="scaleViz"></div>
+
+  <div style="margin-top:20px;padding:14px 18px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
+    <div class="sec">Законы масштабирования — Chinchilla (2022)</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2">
+      Оптимум: <span style="color:var(--amber);font-family:var(--mono)">~20 токенов на параметр</span><br>
+      GPT-3 (175B): нужно ~3.5T токенов → обучали только 300B <span style="color:var(--coral)">(недообучение)</span><br>
+      Llama 3 8B: 8B × 20 = 160B "оптимум", но обучали <span style="color:var(--teal)">15T</span> — намеренно переобучают для эффективного инференса<br>
+      <span style="color:var(--teal)">Вывод: малые модели с огромным датасетом часто бьют большие, плохо обученные.</span>
+    </div>
+  </div>
+  <div class="note note-amber"><strong>Стоимость:</strong> предобучение Llama 3 70B ≈ 6.4M GPU-часов на H100. При $2/GPU-час ≈ $12M только на compute. Поэтому выбор архитектуры и датасета критичен.</div>
+</div>
+
+<!-- STEP 6 -->
+<div class="panel" id="p6">
+  <div class="sec">шаг 7 / 7</div>
+  <h2>Выравнивание: RLHF и DPO</h2>
+  <p style="color:var(--muted);margin-bottom:18px">Предобученный LLM умеет продолжать текст, но не "помогать". Выравнивание меняет поведение модели.</p>
+
+  <div class="sec">RLHF-пайплайн — нажмите на фазу для подробностей</div>
+  <div id="rlhfFlow"></div>
+
+  <div class="ctrl-row" style="margin-top:4px">
+    <button class="ctrl-btn" id="rlhfPrevBtn" onclick="rlhfMove(-1)" disabled>← назад</button>
+    <span class="ctrl-info" id="rlhfInfo">фаза 1 / 4</span>
+    <button class="ctrl-btn" id="rlhfNextBtn" onclick="rlhfMove(1)">вперёд →</button>
+  </div>
+
+  <div style="margin-top:20px;padding:14px 18px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
+    <div class="sec">Альтернатива: DPO (Direct Preference Optimization)</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.9">
+      Убирает отдельную reward-модель и RL. Оптимизирует модель напрямую по парам предпочтений (хороший / плохой ответ).<br>
+      <span style="color:var(--teal)">Проще, стабильнее, часто сравнимо с RLHF.</span>
+      Используется в Llama 2/3, Zephyr, Mistral Instruct.
+    </div>
+  </div>
+
+  <div style="margin-top:28px;padding-top:20px;border-top:0.5px solid var(--border2)">
+    <div class="sec">Полная цепочка современного LLM</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:2.4">
+      <span style="color:var(--muted)">веб-текст</span>
+      → <span style="color:var(--blue)">токенизация</span>
+      → <span style="color:var(--teal)">предобучение</span> (CLM, T токенов)
+      → <span style="color:var(--amber)">SFT</span> (инструкции)
+      → <span style="color:var(--coral)">RM</span> + <span style="color:var(--purple)">PPO/DPO</span>
+      → <span style="color:#fff;font-weight:700">ассистент</span><br>
+      <span style="color:var(--muted)">Архитектура:</span>
+      <span style="color:var(--text)">Decoder-only</span> +
+      <span style="color:var(--teal)">RoPE</span> +
+      <span style="color:var(--teal)">RMSNorm</span> +
+      <span style="color:var(--teal)">SwiGLU</span> +
+      <span style="color:var(--teal)">GQA</span>
+    </div>
+  </div>
+</div>
+
+<!-- nav -->
+<div class="nav-row">
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← назад</button>
+  <span class="counter" id="counter">1 / 7</span>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)">далее →</button>
+</div>
+</div><!-- /card -->
+
+</div><!-- /wrap -->
+
+<script>
+// ── Navigation ──────────────────────────────────────────────────────
+const STEPS = [
+  {id:'p0', label:'01 архитектуры'},
+  {id:'p1', label:'02 маскирование'},
+  {id:'p2', label:'03 сэмплинг'},
+  {id:'p3', label:'04 KV-кэш'},
+  {id:'p4', label:'05 арх. блоки'},
+  {id:'p5', label:'06 масштаб'},
+  {id:'p6', label:'07 RLHF'},
+];
+let cur = 0;
+
+const nav = document.getElementById('stepNav');
+STEPS.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.className = 'step-btn' + (i === 0 ? ' active' : '');
+  b.textContent = s.label;
+  b.onclick = () => jump(i);
+  nav.appendChild(b);
+});
+
+function render() {
+  STEPS.forEach((s, i) => {
+    document.getElementById(s.id).classList.toggle('active', i === cur);
+    nav.children[i].classList.toggle('active', i === cur);
+  });
+  document.getElementById('counter').textContent = (cur + 1) + ' / ' + STEPS.length;
+  document.getElementById('prevBtn').disabled = cur === 0;
+  document.getElementById('nextBtn').disabled = cur === STEPS.length - 1;
+  if (cur === 1) renderMask();
+  if (cur === 2) updateSampling();
+  if (cur === 3) renderKV();
+  if (cur === 4) renderArchStep();
+  if (cur === 5) renderScale();
+  if (cur === 6) renderRLHF();
+}
+function go(d) { cur = Math.max(0, Math.min(STEPS.length - 1, cur + d)); render(); }
+function jump(i) { cur = i; render(); }
+
+// ── Causal Mask ──────────────────────────────────────────────────────
+const MASK_TOKENS = ['The', 'cat', 'sat', 'on', 'mat'];
+let maskCausal = true;
+
+function toggleMask() {
+  maskCausal = !maskCausal;
+  document.getElementById('maskModeLabel').textContent =
+    'Режим: ' + (maskCausal ? 'Декодер (каузальный)' : 'Энкодер (двунаправленный)');
+  renderMask();
+}
+
+function renderMask() {
+  const W = 66, GAP = 4, LBL = 72;
+  const n = MASK_TOKENS.length;
+  let html = '';
+
+  // Header row
+  html += `<div style="display:flex;gap:${GAP}px;margin-bottom:${GAP}px;padding-left:${LBL + GAP}px">`;
+  MASK_TOKENS.forEach(t => {
+    html += `<div style="width:${W}px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)">${t}</div>`;
+  });
+  html += '</div>';
+
+  // Rows
+  MASK_TOKENS.forEach((rowTok, r) => {
+    html += `<div style="display:flex;gap:${GAP}px;margin-bottom:${GAP}px;align-items:center">`;
+    html += `<div style="width:${LBL}px;font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right;padding-right:8px;flex-shrink:0">${rowTok}</div>`;
+    MASK_TOKENS.forEach((_, c) => {
+      const ok = maskCausal ? c <= r : true;
+      html += `<div class="mask-cell ${ok ? 'mask-allowed' : 'mask-blocked'}">${ok ? '✓' : '—'}</div>`;
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('maskContainer').innerHTML = html;
+  document.getElementById('maskNote').textContent = maskCausal
+    ? '"sat" (поз. 2) видит "The", "cat", "sat" — не "on" и не "mat"'
+    : '"sat" видит все токены одновременно — полный двунаправленный контекст';
+}
+
+// ── Sampling ─────────────────────────────────────────────────────────
+const S_TOKENS  = ['mat',  'floor', 'chair', 'sofa', 'bed', 'rug',  'table', 'ground'];
+const S_LOGITS  = [ 3.2,    2.8,    2.3,     1.9,    1.5,   1.1,    0.7,     0.2   ];
+const S_COLORS  = ['var(--purple)','var(--blue)','var(--teal)','var(--amber)',
+                   'var(--coral)','rgba(139,124,248,.5)','rgba(62,207,142,.5)','rgba(91,164,245,.5)'];
+let lastProbs = [];
+
+function softmax(arr) {
+  const m = Math.max(...arr);
+  const e = arr.map(x => Math.exp(x - m));
+  const s = e.reduce((a, b) => a + b, 0);
+  return e.map(x => x / s);
+}
+
+function updateSampling() {
+  const T = parseFloat(document.getElementById('tempSlider').value);
+  const K = parseInt(document.getElementById('topkSlider').value);
+  const P = parseFloat(document.getElementById('toppSlider').value);
+
+  document.getElementById('tempVal').textContent = T.toFixed(1);
+  document.getElementById('topkVal').textContent = K >= 8 ? 'все' : K;
+  document.getElementById('toppVal').textContent = P.toFixed(2);
+
+  const notes = [
+    [0.3, 'очень острое — почти greedy'],
+    [0.7, 'острое — меньше случайности'],
+    [1.1, 'сбалансированное распределение'],
+    [1.5, 'мягкое — больше случайности'],
+    [Infinity, 'очень случайное — почти uniform'],
+  ];
+  document.getElementById('tempNote').textContent = '→ ' + notes.find(([thr]) => T <= thr)[1];
+
+  let probs = softmax(S_LOGITS.map(l => l / T));
+  const sorted = [...probs.keys()].sort((a, b) => probs[b] - probs[a]);
+
+  // top-k
+  const kSet = new Set(sorted.slice(0, K));
+  // top-p on top-k
+  let cum = 0;
+  const pSet = new Set();
+  for (const idx of sorted) {
+    if (!kSet.has(idx)) continue;
+    pSet.add(idx);
+    cum += probs[idx];
+    if (cum >= P) break;
+  }
+
+  const sum = S_TOKENS.reduce((s, _, i) => pSet.has(i) ? s + probs[i] : s, 0);
+  const final = probs.map((p, i) => pSet.has(i) ? p / sum : 0);
+  lastProbs = final;
+
+  const bars = document.getElementById('tokenBars');
+  bars.innerHTML = '';
+  sorted.forEach((i, rank) => {
+    const p = final[i];
+    const row = document.createElement('div');
+    row.className = 'bar-row' + (p === 0 ? ' bar-excluded' : '');
+    row.innerHTML = `
+      <div class="bar-lbl">${S_TOKENS[i]}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(p * 100).toFixed(1)}%;background:${S_COLORS[rank % S_COLORS.length]}">
+          ${p > 0.04 ? `<span class="bar-pct">${(p * 100).toFixed(1)}%</span>` : ''}
+        </div>
+      </div>`;
+    bars.appendChild(row);
+  });
+}
+
+function sampleToken() {
+  let r = Math.random(), cum = 0, chosen = S_TOKENS[0];
+  for (let i = 0; i < lastProbs.length; i++) {
+    cum += lastProbs[i];
+    if (r < cum) { chosen = S_TOKENS[i]; break; }
+  }
+  const el = document.getElementById('genLatest');
+  el.className = 'gen-token gen-new';
+  el.textContent = chosen;
+  el.style.animation = 'none';
+  requestAnimationFrame(() => { el.style.animation = ''; });
+}
+
+// ── KV Cache ─────────────────────────────────────────────────────────
+const KV_WORDS = ['The', 'cat', 'sat', 'on', 'mat'];
+let kvCur = 0;
+
+function kvMove(d) {
+  kvCur = Math.max(0, Math.min(KV_WORDS.length - 1, kvCur + d));
+  renderKV();
+}
+
+function renderKV() {
+  document.getElementById('kvInfo').textContent = `шаг ${kvCur + 1} / ${KV_WORDS.length}`;
+  document.getElementById('kvPrevBtn').disabled = kvCur === 0;
+  document.getElementById('kvNextBtn').disabled = kvCur === KV_WORDS.length - 1;
+
+  const tbl = document.getElementById('kvTable');
+  tbl.innerHTML = '<tr><th>токен</th><th>Q</th><th>K</th><th>V</th><th>Attention output</th></tr>';
+
+  KV_WORDS.forEach((w, i) => {
+    const past = i < kvCur, cur_ = i === kvCur, future = i > kvCur;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--text);font-family:var(--mono)">${w}</td>
+      <td class="${cur_ ? 'kv-new' : 'kv-future'}">${cur_ ? 'вычислить' : '—'}</td>
+      <td class="${past ? 'kv-cached' : cur_ ? 'kv-new' : 'kv-future'}">${past ? '✓ кэш' : cur_ ? 'вычислить' : '—'}</td>
+      <td class="${past ? 'kv-cached' : cur_ ? 'kv-new' : 'kv-future'}">${past ? '✓ кэш' : cur_ ? 'вычислить' : '—'}</td>
+      <td class="${cur_ ? 'kv-new' : 'kv-future'}">${cur_ ? '= Σ wᵢ·Vᵢ' : '—'}</td>`;
+    tbl.appendChild(tr);
+  });
+
+  const cached = kvCur;
+  const total = (kvCur + 1) * (kvCur + 1);
+  document.getElementById('kvStats').innerHTML =
+    `<span style="color:var(--teal)">✓ кэш K,V: ${cached} токен(ов)</span>` +
+    `&nbsp;&nbsp;|&nbsp;&nbsp;<span style="color:var(--amber)">новых вычислений: 1</span>` +
+    `&nbsp;&nbsp;|&nbsp;&nbsp;<span style="color:var(--muted)">без кэша потребовалось бы: ~${total}</span>`;
+}
+
+// ── ARCH SELECTOR ────────────────────────────────────────────────────
+const ARCH_DATA = {
+  pe: {
+    label: '1. Позиционное кодирование',
+    sel: 'rope',
+    opts: {
+      sinusoidal: { label:'Sinusoidal', era:'original 2017',
+        clr:'var(--muted)', bg:'var(--surface2)', bd:'var(--border2)',
+        formula:'PE(pos,2i) = sin(pos / 10000^{2i/d})',
+        models:'BERT · GPT-1/2 · original Transformer',
+        insight:'Абсолютные позиции, фиксированные синусоиды. Не обобщается за пределы обучающей длины.',
+        pros:['Нет обучаемых параметров','Детерминировано'],
+        cons:['Не экстраполирует','Только абсолютная позиция'] },
+      rope: { label:'RoPE', era:'Su et al. 2021',
+        clr:'var(--teal)', bg:'var(--teal-dim)', bd:'var(--teal)',
+        formula:"q' = q·e^{imθ}   k' = k·e^{imθ}\nθᵢ = 10000^{-2i/d}",
+        models:'Llama 1/2/3 · Mistral · Gemma · Qwen · GPT-NeoX',
+        insight:'Вращает пары измерений Q и K. Относительная позиция между токенами i и j кодируется прямо в dot-product Q·K — без изменения V. YaRN/LongRoPE расширяют до 128k+.',
+        pros:['Относительная позиция бесплатно','Хорошо экстраполирует','YaRN для длинных контекстов'],
+        cons:['Нельзя применить к V-векторам'] },
+      alibi: { label:'ALiBi', era:'Press et al. 2021',
+        clr:'var(--amber)', bg:'var(--amber-dim)', bd:'var(--amber)',
+        formula:'score(i,j) = q·k^T − m · |i − j|',
+        models:'BLOOM · MPT-7B/30B',
+        insight:'PE вообще нет. Вычитает линейный штраф за расстояние из attention-оценок до softmax. Разные наклоны m для каждой головы.',
+        pros:['Хорошо экстраполирует','Нет лишних параметров'],
+        cons:['Менее популярен чем RoPE','Хуже на очень длинных seq'] },
+    }
+  },
+  norm: {
+    label: '2. Нормализация',
+    sel: 'rmsnorm',
+    opts: {
+      ln_post: { label:'LayerNorm post', era:'original 2017',
+        clr:'var(--muted)', bg:'var(--surface2)', bd:'var(--border2)',
+        formula:'y = (x − μ) / σ · γ + β\nпосле sublayer',
+        models:'original Transformer · GPT-1',
+        insight:'LN после attention и FFN. Нестабильно при глубоких сетях — градиенты взрываются.',
+        pros:['Исторически первый вариант'],
+        cons:['Нестабильно при большой глубине','Нужна warm-up стратегия'] },
+      ln_pre: { label:'LayerNorm pre', era:'GPT-2 (2019)',
+        clr:'var(--blue)', bg:'var(--blue-dim)', bd:'var(--blue)',
+        formula:'out = x + sublayer(LayerNorm(x))\nдо sublayer',
+        models:'GPT-2 · GPT-3 · BERT (некоторые варианты)',
+        insight:'LN до sublayer. Значительно стабильнее при обучении. Стал стандартом до появления RMSNorm.',
+        pros:['Стабильное обучение','Не нужна warm-up стратегия'],
+        cons:['Вычисляет и μ и σ — избыточно'] },
+      rmsnorm: { label:'RMSNorm pre', era:'Zhang & Sennrich 2019',
+        clr:'var(--teal)', bg:'var(--teal-dim)', bd:'var(--teal)',
+        formula:'RMS(x) = √(1/d · Σxᵢ²)\ny = x / RMS(x) · γ',
+        models:'Llama 1/2/3 · Mistral · Gemma · Qwen · PaLM',
+        insight:'Убирает вычитание среднего из LayerNorm. Нормировка только по RMS. На 7–15% быстрее при одинаковом качестве. Нет параметра β.',
+        pros:['Быстрее LayerNorm','Стабильное обучение','Меньше параметров'],
+        cons:['Без принципиального выигрыша в качестве'] },
+    }
+  },
+  ffn: {
+    label: '3. Активация FFN',
+    sel: 'swiglu',
+    canvas: true,
+    opts: {
+      relu: { label:'ReLU', era:'original 2017',
+        clr:'var(--muted)', bg:'var(--surface2)', bd:'var(--border2)',
+        formula:'f(x) = max(0, x)\nFFN: d → 4d → ReLU → d',
+        models:'original Transformer',
+        insight:'Простейшая нелинейность. Быстро, но "мёртвые нейроны" — значительная часть всегда = 0.',
+        pros:['Максимально быстрая','Простая реализация'],
+        cons:['"Мёртвые нейроны"','Хуже GELU/SwiGLU на NLP'],
+        fn: x => Math.max(0, x) },
+      gelu: { label:'GELU', era:'Hendrycks 2016',
+        clr:'var(--blue)', bg:'var(--blue-dim)', bd:'var(--blue)',
+        formula:'f(x) = x · Φ(x) ≈ x · σ(1.702x)\nFFN: d → 4d → GELU → d',
+        models:'BERT · GPT-2 · GPT-3 · RoBERTa',
+        insight:'Плавная ReLU: взвешивает x по Гауссу. Почти нет мёртвых нейронов. Де-факто стандарт до SwiGLU.',
+        pros:['Плавная и дифференцируема везде','Лучше ReLU на NLP'],
+        cons:['Чуть медленнее ReLU','Уступает SwiGLU'],
+        fn: x => x * (1/(1+Math.exp(-1.702*x))) },
+      swiglu: { label:'SwiGLU', era:'Shazeer 2020',
+        clr:'var(--teal)', bg:'var(--teal-dim)', bd:'var(--teal)',
+        formula:'Swish(x) = x · σ(x)\nout = (W₁x ⊙ Swish(W₂x)) W₃\nскрытый слой: 8/3 · d',
+        models:'Llama 1/2/3 · PaLM · Gemma · Mistral',
+        insight:'Gated FFN: два параллельных линейных слоя перемножаются поэлементно. Лучше GELU при тех же FLOPs. Размер 8/3·d (≈2.67d) вместо 4d.',
+        pros:['Лучшее качество при равных FLOPs','Де-факто стандарт 2023+'],
+        cons:['3 матрицы вместо 2','Нестандартный размер слоя'],
+        fn: x => x * (1/(1+Math.exp(-x))) },
+      geglu: { label:'GeGLU', era:'Shazeer 2020',
+        clr:'var(--coral)', bg:'var(--coral-dim)', bd:'var(--coral)',
+        formula:'out = (W₁x ⊙ GELU(W₂x)) W₃',
+        models:'T5 v1.1 · UL2 · Flan-T5',
+        insight:'SwiGLU с GELU вместо Swish в gate. Используется в T5-экосистеме. По качеству близко к SwiGLU.',
+        pros:['Близко к SwiGLU по качеству','Используется в T5/Flan'],
+        cons:['Чуть уступает SwiGLU в benchmarks'],
+        fn: x => x * (1/(1+Math.exp(-1.702*x))) },
+    }
+  },
+  attn: {
+    label: '4. Механизм Attention',
+    sel: 'gqa',
+    heads: true,
+    opts: {
+      mha: { label:'MHA', era:'original 2017',
+        clr:'var(--muted)', bg:'var(--surface2)', bd:'var(--border2)',
+        formula:'H голов, у каждой своя KV-пара\nKV-кэш: H × seq × 2 × d_k',
+        models:'BERT · GPT-2 · GPT-3 · T5',
+        insight:'Multi-Head Attention. H=32 голов → 32 независимых KV-пары. Максимальное качество, максимальный KV-кэш.',
+        pros:['Максимальное качество','Каждая голова независима'],
+        cons:['Огромный KV-кэш','Медленный инференс при длинных контекстах'],
+        qH:4, kvH:4 },
+      gqa: { label:'GQA', era:'Ainslie et al. 2023',
+        clr:'var(--teal)', bg:'var(--teal-dim)', bd:'var(--teal)',
+        formula:'G групп, каждая группа Q-голов\nделит 1 KV-пару\nKV-кэш: G × seq × 2 × d_k',
+        models:'Llama 2 34B/70B · Llama 3 · Mistral · Falcon 40B',
+        insight:'Grouped Query Attention. G=1 → MQA, G=H → MHA. G=8 при H=32 — золотой стандарт: минимальная потеря качества, кэш ×4 меньше.',
+        pros:['Баланс качество/кэш','Минимальная потеря vs MHA','Стандарт 2023+'],
+        cons:['Чуть хуже MHA на некоторых задачах'],
+        qH:4, kvH:2 },
+      mqa: { label:'MQA', era:'Shazeer 2019',
+        clr:'var(--amber)', bg:'var(--amber-dim)', bd:'var(--amber)',
+        formula:'Все Q-головы делят 1 KV-пару\nKV-кэш: 1 × seq × 2 × d_k',
+        models:'Falcon 7B · PaLM · Starcoder v1',
+        insight:'Multi-Query Attention. Минимальный KV-кэш (÷H), но заметная потеря качества. GQA вытеснил MQA как лучший компромисс.',
+        pros:['Минимальный KV-кэш','Максимальная скорость инференса'],
+        cons:['Заметная потеря качества vs MHA','Вытеснен GQA'],
+        qH:4, kvH:1 },
+      mla: { label:'MLA', era:'DeepSeek V2 (2024)',
+        clr:'var(--purple)', bg:'var(--purple-dim)', bd:'var(--purple)',
+        formula:'c_KV = W_KV · x  (сжатый латент)\nK,V разворачиваются из c_KV\nкэшируется только c_KV',
+        models:'DeepSeek V2 · DeepSeek V3 · DeepSeek-R1',
+        insight:'Multi-head Latent Attention. K и V сжимаются в низкоразмерный вектор c_KV (rank r << H·d_k). Кэшируется только c_KV — в 10–13× меньше памяти чем MHA при почти том же качестве.',
+        pros:['KV-кэш ×10–13 меньше чем MHA','Качество близко к MHA'],
+        cons:['Сложная реализация','Нужна декомпрессия при каждом inference-шаге'],
+        qH:4, kvH:1, special:'mla' },
+    }
+  }
+};
+
+const archState = { pe:'rope', norm:'rmsnorm', ffn:'swiglu', attn:'gqa' };
+
+function renderArchStep() {
+  const el = document.getElementById('archSelector');
+  el.innerHTML = '';
+  Object.entries(ARCH_DATA).forEach(([catKey, cat]) => {
+    const selId = archState[catKey];
+    const sel = cat.opts[selId];
+    const div = document.createElement('div');
+    div.className = 'arch-cat';
+
+    // tabs
+    const tabs = Object.entries(cat.opts).map(([id, o]) =>
+      `<button class="arch-tab${id===selId?' sel':''}"
+        style="${id===selId?`background:${o.clr};border-color:${o.clr}`:''}"
+        onclick="selectArch('${catKey}','${id}')">${o.label}
+        <span style="font-size:9px;opacity:.7;display:block">${o.era}</span>
+      </button>`).join('');
+
+    // detail
+    const prosHtml = sel.pros.map(p=>`<span class="arch-chip pro">✓ ${p}</span>`).join('');
+    const consHtml = sel.cons.map(c=>`<span class="arch-chip con">✗ ${c}</span>`).join('');
+
+    let visual = '';
+    if (cat.canvas && sel.fn) {
+      visual = `<canvas id="fnCanvas_${catKey}" width="160" height="100" style="border-radius:8px;background:var(--surface2);border:0.5px solid var(--border2)"></canvas>`;
+    }
+    if (cat.heads && sel.qH != null) {
+      visual = buildHeadDiagram(sel);
+    }
+
+    div.innerHTML = `
+      <div class="arch-cat-hdr">${cat.label}</div>
+      <div class="arch-tabs">${tabs}</div>
+      <div class="arch-detail open" style="border-color:${sel.bd}20">
+        <div>
+          <div class="arch-models">Модели: <span style="color:var(--text)">${sel.models}</span></div>
+          <div class="arch-insight">${sel.insight}</div>
+          <div class="arch-formula">${sel.formula}</div>
+          <div class="arch-chips" style="margin-top:8px">${prosHtml}${consHtml}</div>
+        </div>
+        <div>${visual}</div>
+      </div>`;
+    el.appendChild(div);
+
+    if (cat.canvas && sel.fn) {
+      requestAnimationFrame(() => drawFnCanvas(`fnCanvas_${catKey}`, sel.fn, sel.clr));
+    }
+  });
+}
+
+function selectArch(cat, id) {
+  archState[cat] = id;
+  renderArchStep();
+}
+
+function drawFnCanvas(canvasId, fn, color) {
+  const c = document.getElementById(canvasId);
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0,0,W,H);
+  // axes
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
+  // fn: x from -3 to 3
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let px = 0; px <= W; px++) {
+    const x = (px/W)*6 - 3;
+    const y = fn(x);
+    const py = H/2 - y * (H/4);
+    px === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  // label
+  ctx.fillStyle = color;
+  ctx.font = '9px JetBrains Mono, monospace';
+  ctx.fillText('x: −3 … +3', 4, H-4);
+}
+
+function buildHeadDiagram(sel) {
+  const {qH, kvH, clr, bg, bd, special} = sel;
+  const unitH = 22, gap = 3;
+  const spanSize = Math.ceil(qH / kvH);
+  const kvUnitH = spanSize * unitH + (spanSize - 1) * gap;
+  let qCols = '', kvCols = '';
+  for (let i = 0; i < qH; i++)
+    qCols += `<div style="width:34px;height:${unitH}px;border-radius:4px;background:var(--blue-dim);border:0.5px solid var(--blue);color:var(--blue);font-family:var(--mono);font-size:9px;display:flex;align-items:center;justify-content:center;margin-bottom:${gap}px">Q${i+1}</div>`;
+  if (special === 'mla') {
+    kvCols = `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:34px;height:${kvUnitH}px;border-radius:4px;background:${bg};border:0.5px solid ${bd};color:${clr};font-family:var(--mono);font-size:8px;display:flex;align-items:center;justify-content:center;text-align:center">c_KV<br>(latent)</div>
+      <div style="font-size:8px;font-family:var(--mono);color:var(--muted)">×10–13↓</div>
+    </div>`;
+  } else {
+    for (let i = 0; i < kvH; i++)
+      kvCols += `<div style="width:34px;height:${kvUnitH}px;border-radius:4px;background:${bg};border:0.5px solid ${bd};color:${clr};font-family:var(--mono);font-size:9px;display:flex;align-items:center;justify-content:center;margin-bottom:${gap}px">KV${i+1}</div>`;
+  }
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+    <div style="font-size:9px;font-family:var(--mono);color:var(--muted);text-align:center;margin-bottom:4px">Q → KV</div>
+    <div style="display:flex;gap:6px;align-items:flex-start">
+      <div>${qCols}</div>
+      <div style="align-self:center;color:var(--muted);font-size:14px">→</div>
+      <div>${kvCols}</div>
+    </div>
+    <div style="font-size:9px;font-family:var(--mono);color:${clr};margin-top:4px">${kvH===qH?'1:1':kvH===1?'все→1 KV':''+Math.ceil(qH/kvH)+'Q→1 KV'}</div>
+  </div>`;
+}
+
+// ── Scale ─────────────────────────────────────────────────────────────
+function renderScale() {
+  const models = [
+    {name:'BERT-base',  params:110,      color:'var(--blue)',   tok:'~16B'},
+    {name:'GPT-2',      params:1500,     color:'var(--blue)',   tok:'~40B'},
+    {name:'Llama 2 7B', params:7000,     color:'var(--teal)',   tok:'2T'},
+    {name:'GPT-3',      params:175000,   color:'var(--purple)', tok:'300B'},
+    {name:'Llama 3 70B',params:70000,    color:'var(--teal)',   tok:'15T'},
+    {name:'GPT-4 (est)',params:1000000,  color:'var(--amber)',  tok:'~13T'},
+  ];
+  const maxLog = Math.log10(Math.max(...models.map(m => m.params)));
+  const viz = document.getElementById('scaleViz');
+  viz.innerHTML = '';
+  models.forEach(m => {
+    const pct = Math.max(5, Math.log10(m.params) / maxLog * 100);
+    const label = m.params >= 1000000 ? (m.params/1000000).toFixed(0)+'T'
+                : m.params >= 1000    ? (m.params/1000).toFixed(0)+'B'
+                : m.params+'M';
+    viz.innerHTML += `
+      <div class="scale-row">
+        <div class="scale-name" style="color:${m.color}">${m.name}</div>
+        <div style="flex:1;position:relative;height:22px">
+          <div style="background:var(--border);border-radius:3px;height:100%;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${m.color};opacity:0.35;border-radius:3px"></div>
+          </div>
+          <div style="position:absolute;left:8px;top:3px;font-family:var(--mono);font-size:10px;color:${m.color}">${label} params</div>
+        </div>
+        <div class="scale-tokens">${m.tok}</div>
+      </div>`;
+  });
+}
+
+// ── RLHF ─────────────────────────────────────────────────────────────
+const PHASES = [
+  {num:'фаза 1', name:'Предобучение (Pre-training)', cls:'ph1',
+   desc:'Обучаем декодер-трансформер предсказывать следующий токен на огромном корпусе (Common Crawl, книги, код). Результат: базовая модель, умеющая продолжать текст, но не следовать инструкциям.'},
+  {num:'фаза 2', name:'SFT — Supervised Fine-Tuning', cls:'ph2',
+   desc:'Дообучаем на 10–100k человеческих диалогов в формате инструкция → хороший ответ. Модель учится формату и базовому следованию инструкциям. Это уже полезная, но ещё не выравненная модель.'},
+  {num:'фаза 3', name:'Reward Model (RM)', cls:'ph3',
+   desc:'Люди ранжируют несколько ответов SFT-модели (A лучше B). На этих парах обучается отдельная модель-судья, предсказывающая числовую оценку качества ответа. RM — суррогат человеческих предпочтений.'},
+  {num:'фаза 4', name:'RLHF — PPO-обучение', cls:'ph4',
+   desc:'SFT-модель дообучается через Proximal Policy Optimization: генерирует ответы, RM оценивает, градиент награды обновляет веса. KL-дивергенция от SFT ограничивает "уход" модели и предотвращает reward hacking.'},
+];
+let rlhfCur = 0;
+
+function rlhfMove(d) {
+  rlhfCur = Math.max(0, Math.min(PHASES.length - 1, rlhfCur + d));
+  renderRLHF();
+}
+
+function renderRLHF() {
+  document.getElementById('rlhfInfo').textContent = `фаза ${rlhfCur + 1} / ${PHASES.length}`;
+  document.getElementById('rlhfPrevBtn').disabled = rlhfCur === 0;
+  document.getElementById('rlhfNextBtn').disabled = rlhfCur === PHASES.length - 1;
+
+  const flow = document.getElementById('rlhfFlow');
+  flow.innerHTML = '';
+  PHASES.forEach((p, i) => {
+    const active = i === rlhfCur;
+    const div = document.createElement('div');
+    div.className = `rlhf-phase ${p.cls}`;
+    div.style.opacity = active ? '1' : '0.4';
+    div.style.transform = active ? 'scale(1.01)' : 'scale(1)';
+    div.innerHTML = `
+      <div class="ph-num">${p.num}</div>
+      <div class="ph-name">${p.name}</div>
+      ${active ? `<div class="ph-desc">${p.desc}</div>` : ''}`;
+    div.onclick = () => { rlhfCur = i; renderRLHF(); };
+    flow.appendChild(div);
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+renderMask();
+updateSampling();
+renderKV();
+renderArchStep();
+renderScale();
+renderRLHF();
+render();
+</script>
+</body>
+</html>
