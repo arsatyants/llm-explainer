@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Как работает энкодер трансформера</title>
+<title>How the Transformer Encoder Works / Как работает энкодер трансформера</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -143,8 +143,8 @@ input[type=range]{flex:1;accent-color:var(--purple)}
 
 <div class="header">
   <div class="label">deep learning / nlp</div>
-  <h1>Как работает<br><span>энкодер</span> трансформера</h1>
-  <p class="subtitle">Интерактивный разбор пути токена от слова до контекстуализированного вектора — шаг за шагом.</p>
+  <h1 data-en="How the<br><span>encoder</span> works">Как работает<br><span>энкодер</span> трансформера</h1>
+  <p class="subtitle" data-en="Interactive breakdown of a token&#39;s journey from word to contextualized vector — step by step.">Интерактивный разбор пути токена от слова до контекстуализированного вектора — шаг за шагом.</p>
 </div>
 
 <div class="step-nav" id="stepNav"></div>
@@ -153,9 +153,9 @@ input[type=range]{flex:1;accent-color:var(--purple)}
 
 <!-- STEP 0 -->
 <div class="panel active" id="p0">
-  <div class="sec">шаг 1 / 6</div>
-  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff">Токенизация</h2>
-  <p style="color:var(--muted);margin-bottom:20px">Слова разбиваются на токены и превращаются в целые числа — индексы в словаре.</p>
+  <div class="sec" data-en="step 1 / 6">шаг 1 / 6</div>
+  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff" data-en="Tokenization">Токенизация</h2>
+  <p style="color:var(--muted);margin-bottom:20px" data-en="Words are split into tokens and converted to integers — indices in the vocabulary.">Слова разбиваются на токены и превращаются в целые числа — индексы в словаре.</p>
   <div style="background:var(--surface2);border-radius:10px;padding:16px;text-align:center;margin-bottom:20px;font-size:18px;font-weight:600;letter-spacing:0.05em">
     "The cat sat"
   </div>
@@ -165,23 +165,23 @@ input[type=range]{flex:1;accent-color:var(--purple)}
     <div class="token purple d2">"cat"<br><sub>id = 4937</sub></div>
     <div class="token purple d3">"sat"<br><sub>id = 3290</sub></div>
   </div>
-  <div class="note">
+  <div class="note" data-en='<strong>Note:</strong> a real vocabulary contains ~30,000 subwords (BPE). "playing" → "play" + "##ing". The model only sees numbers — never raw words.'>
     <strong>Важно:</strong> реальный словарь содержит ~30 000 подслов (BPE). "playing" → "play" + "##ing". Модель работает только с числами — слов она не видит.
   </div>
 </div>
 
 <!-- STEP 1 -->
 <div class="panel" id="p1">
-  <div class="sec">шаг 2 / 6</div>
+  <div class="sec" data-en="step 2 / 6">шаг 2 / 6</div>
   <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff">Embedding lookup</h2>
-  <p style="color:var(--muted);margin-bottom:20px">По индексу берём строку из обучаемой матрицы W_E — это статичный вектор слова.</p>
+  <p style="color:var(--muted);margin-bottom:20px" data-en="We look up a row in the learned W_E matrix by index — this is the static word vector.">По индексу берём строку из обучаемой матрицы W_E — это статичный вектор слова.</p>
   <div class="matrix">
-    <div class="title">Embedding-матрица W_E</div>
-    <div class="dim">30 000 строк × 768 столбцов</div>
+    <div class="title" data-en="Embedding matrix W_E">Embedding-матрица W_E</div>
+    <div class="dim" data-en="30 000 rows × 768 columns">30 000 строк × 768 столбцов</div>
     <div style="margin-top:8px;font-size:11px;color:var(--border2)">───────────────────────</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px">строка 1996 → "The"</div>
-    <div style="font-size:11px;color:var(--muted)">строка 4937 → "cat"</div>
-    <div style="font-size:11px;color:var(--muted)">строка 3290 → "sat"</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px" data-en='row 1996 → "The"'>строка 1996 → "The"</div>
+    <div style="font-size:11px;color:var(--muted)" data-en='row 4937 → "cat"'>строка 4937 → "cat"</div>
+    <div style="font-size:11px;color:var(--muted)" data-en='row 3290 → "sat"'>строка 3290 → "sat"</div>
   </div>
   <div class="vec-row">
     <div style="text-align:center">
@@ -201,22 +201,22 @@ input[type=range]{flex:1;accent-color:var(--purple)}
       <div class="vec d3">[−0.31, 0.88, 0.15, −0.62, …]</div>
     </div>
   </div>
-  <div class="note">
+  <div class="note" data-en='<strong>No context yet.</strong> "cat" in "black cat" and "cat scan" is the same vector. The encoder will fix that. W_E is a training result: semantically similar words end up nearby in space. Hence: king − man + woman ≈ queen.'>
     <strong>Контекста нет.</strong> "cat" в "black cat" и "cat scan" — один и тот же вектор. Это исправит энкодер. W_E — результат обучения: слова с похожим смыслом оказались рядом в пространстве. Отсюда: king − man + woman ≈ queen.
   </div>
 </div>
 
 <!-- STEP 2 -->
 <div class="panel" id="p2">
-  <div class="sec">шаг 3 / 6</div>
+  <div class="sec" data-en="step 3 / 6">шаг 3 / 6</div>
   <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff">Positional encoding</h2>
-  <p style="color:var(--muted);margin-bottom:16px">Трансформер не имеет рекуррентности — позиция добавляется вручную через синусоиды разных частот.</p>
+  <p style="color:var(--muted);margin-bottom:16px" data-en="The transformer has no recurrence — position is injected manually via sinusoids of different frequencies.">Трансформер не имеет рекуррентности — позиция добавляется вручную через синусоиды разных частот.</p>
   <div style="font-family:var(--mono);font-size:13px;text-align:center;margin:12px 0;color:var(--text)">
     PE(pos, 2i) = sin(pos / k<sup>2i/d</sup>) &nbsp;&nbsp; PE(pos, 2i+1) = cos(pos / k<sup>2i/d</sup>)
   </div>
 
   <table class="pe-table">
-    <tr><th>позиция</th><th>i=0 (sin)</th><th>i=0 (cos)</th><th>i=1 (sin)</th><th>i=1 (cos)</th></tr>
+    <tr><th data-en="position">позиция</th><th>i=0 (sin)</th><th>i=0 (cos)</th><th>i=1 (sin)</th><th>i=1 (cos)</th></tr>
     <tr><td>pos=0</td><td>0.000</td><td>1.000</td><td>0.000</td><td>1.000</td></tr>
     <tr><td>pos=1</td><td>0.841</td><td>0.540</td><td>0.010</td><td>1.000</td></tr>
     <tr><td>pos=2</td><td>0.909</td><td>−0.416</td><td>0.020</td><td>1.000</td></tr>
@@ -227,31 +227,31 @@ input[type=range]{flex:1;accent-color:var(--purple)}
     <input type="range" min="100" max="100000" value="10000" step="100" id="kSlider" oninput="updateK(this.value)">
     <span class="slider-val" id="kVal">10000</span>
   </div>
-  <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;font-family:var(--mono)" id="kNote">стандарт из "Attention Is All You Need" (2017)</div>
+  <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;font-family:var(--mono)" id="kNote" data-en='standard from "Attention Is All You Need" (2017)'>стандарт из "Attention Is All You Need" (2017)</div>
 
   <!-- Frequency band canvas -->
   <div style="background:var(--surface2);border:0.5px solid var(--border2);border-radius:10px;padding:14px;margin:8px 0">
-    <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:8px;text-align:center">Диапазоны частот — k = <span id="kValCanvas">10000</span> &nbsp;(d=128, позиции 0…50)</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:8px;text-align:center" data-en="Frequency bands — k = <span id=&#39;kValCanvas&#39;>10000</span> &amp;nbsp;(d=128, positions 0…50)">Диапазоны частот — k = <span id="kValCanvas">10000</span> &nbsp;(d=128, позиции 0…50)</div>
     <canvas id="peCanvas" width="820" height="220" style="width:100%;height:auto;display:block"></canvas>
     <div id="kBands" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;justify-content:center"></div>
   </div>
 
   <!-- Expanded explanation -->
   <div style="margin-top:14px;background:var(--surface2);border-radius:10px;padding:14px 18px;border:0.5px solid var(--border2)">
-    <div class="sec">Что означает каждая волна</div>
+    <div class="sec" data-en="What each wave means">Что означает каждая волна</div>
     <div style="font-size:13px;color:var(--muted);line-height:2" id="kExplain"></div>
   </div>
 
-  <div class="note">
+  <div class="note" data-en="<strong>Analogy — binary counter:</strong> bit 0 flips every step (fast), bit N every 2ᴺ steps (slow). PE does the same thing continuously: dim₀ tells apart neighbors, dim_max tells apart positions thousands of tokens apart. Larger k → an even smoother &#39;counter&#39;.">
     <strong>Аналогия — двоичный счётчик:</strong> бит 0 меняется каждый шаг (быстро), бит N — каждые 2ᴺ шагов (медленно). PE делает то же самое непрерывно: dim₀ отличает соседей, dim_max — позиции на расстоянии тысяч токенов. Большое k → ещё более плавный «счётчик».
   </div>
 </div>
 
 <!-- STEP 3 -->
 <div class="panel" id="p3">
-  <div class="sec">шаг 4 / 6</div>
-  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff">Проекции Q K V</h2>
-  <p style="color:var(--muted);margin-bottom:20px">Каждый токен умножается на три обучаемые матрицы и получает три роли.</p>
+  <div class="sec" data-en="step 4 / 6">шаг 4 / 6</div>
+  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff" data-en="Q K V projections">Проекции Q K V</h2>
+  <p style="color:var(--muted);margin-bottom:20px" data-en="Each token is multiplied by three learnable matrices and gets three roles.">Каждый токен умножается на три обучаемые матрицы и получает три роли.</p>
   <div style="text-align:center;margin-bottom:8px">
     <span style="font-family:var(--mono);font-size:13px;background:var(--purple-dim);border:0.5px solid var(--purple);color:var(--purple);padding:8px 20px;border-radius:8px;display:inline-block">x₁  "cat"  d=768</span>
   </div>
@@ -264,36 +264,36 @@ input[type=range]{flex:1;accent-color:var(--purple)}
   <div class="qkv-row">
     <div class="qkv-box q-box d1">
       <div class="name">Q</div>
-      <div class="desc">query — "что я ищу?"</div>
+      <div class="desc" data-en='query — "what am I looking for?"'>query — "что я ищу?"</div>
       <div class="dim">d_k = 64</div>
     </div>
     <div class="qkv-box k-box d2">
       <div class="name">K</div>
-      <div class="desc">key — "что предлагаю?"</div>
+      <div class="desc" data-en='key — "what do I offer?"'>key — "что предлагаю?"</div>
       <div class="dim">d_k = 64</div>
     </div>
     <div class="qkv-box v-box d3">
       <div class="name">V</div>
-      <div class="desc">value — "что отдаю?"</div>
+      <div class="desc" data-en='value — "what do I give?"'>value — "что отдаю?"</div>
       <div class="dim">d_v = 64</div>
     </div>
   </div>
-  <div class="note">
-    <strong>Параллелизм:</strong> это делается для всех токенов одновременно через матричное умножение. В BERT-base: 12 голов × 64 = 768. Каждая голова учит своё "понимание" связей.
+  <div class="note" data-en='<strong>Parallelism:</strong> this is done for all tokens simultaneously via matrix multiplication. In BERT-base: 12 heads × 64 = 768. Each head learns its own "understanding" of relationships.'>
+    <strong>Параллелизм:</strong> это делается для всех токенов одновременно через матричное умножения. В BERT-base: 12 голов × 64 = 768. Каждая голова учит своё "понимание" связей.
   </div>
 </div>
 
 <!-- STEP 4 -->
 <div class="panel" id="p4">
-  <div class="sec">шаг 5 / 6</div>
+  <div class="sec" data-en="step 5 / 6">шаг 5 / 6</div>
   <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff">Attention scores</h2>
-  <p style="color:var(--muted);margin-bottom:12px">Q_cat умножается на K всех токенов → масштабируется → softmax → веса.</p>
+  <p style="color:var(--muted);margin-bottom:12px" data-en="Q_cat is multiplied by K of all tokens → scaled → softmax → weights.">Q_cat умножается на K всех токенов → масштабируется → softmax → веса.</p>
   <div style="font-family:var(--mono);font-size:12px;text-align:center;color:var(--muted);margin-bottom:16px">
     score = Q · Kᵀ / √d_k &nbsp;&nbsp; weights = softmax(scores)
   </div>
 
   <div class="slider-row">
-    <label>позиция query:</label>
+    <label data-en="query position:">позиция query:</label>
     <input type="range" min="0" max="2" value="1" step="1" id="querySlider" oninput="updateAttention(this.value)">
     <span class="slider-val" id="queryWord">cat</span>
   </div>
@@ -301,18 +301,18 @@ input[type=range]{flex:1;accent-color:var(--purple)}
   <div class="att-grid" id="attGrid"></div>
 
   <div style="text-align:center;margin:12px 0;font-size:12px;color:var(--muted);font-family:var(--mono)" id="attFormula"></div>
-  <div class="note">
+  <div class="note" data-en="<strong>Result:</strong> weighted sum of V-vectors of all tokens. Attention thickness = weight. This happens in parallel for all tokens and all 12 heads simultaneously.">
     <strong>Результат:</strong> взвешенная сумма V-векторов всех токенов. Толщина внимания = вес. Это происходит параллельно для всех токенов и всех 12 голов одновременно.
   </div>
 </div>
 
 <!-- STEP 5 -->
 <div class="panel" id="p5">
-  <div class="sec">шаг 6 / 6</div>
-  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff">FFN + выход энкодера</h2>
-  <p style="color:var(--muted);margin-bottom:20px">После attention — нормализация и позиционно-независимая нейросеть.</p>
+  <div class="sec" data-en="step 6 / 6">шаг 6 / 6</div>
+  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;color:#fff" data-en="FFN + encoder output">FFN + выход энкодера</h2>
+  <p style="color:var(--muted);margin-bottom:20px" data-en="After attention — normalization and a position-independent neural network.">После attention — нормализация и позиционно-независимая нейросеть.</p>
   <div class="ffn-flow">
-    <div class="ffn-box d1" style="border-color:var(--teal);color:var(--teal)">после attention<div class="dim">d = 768</div></div>
+    <div class="ffn-box d1" style="border-color:var(--teal);color:var(--teal)" data-en="after attention<div class=&#39;dim&#39;>d = 768</div>">после attention<div class="dim">d = 768</div></div>
     <div class="ffn-arrow">→</div>
     <div class="ffn-box d2">Add &amp; Norm<div class="dim">x + attn(x)</div></div>
     <div class="ffn-arrow">→</div>
@@ -325,17 +325,17 @@ input[type=range]{flex:1;accent-color:var(--purple)}
     <div class="ffn-box" style="border-color:var(--purple);color:var(--purple)">Add &amp; Norm<div class="dim">x + ffn(x)</div></div>
   </div>
   <div style="text-align:center;padding:16px;background:var(--purple-dim);border:0.5px solid rgba(139,124,248,0.3);border-radius:10px;margin:16px 0">
-    <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:6px">выход одного слоя</div>
-    <div style="font-size:16px;font-weight:700;color:var(--purple);font-family:var(--mono)">матрица 3 × 768</div>
-    <div style="font-size:12px;color:var(--muted);margin-top:4px">контекстуализированный вектор для каждого токена</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:6px" data-en="output of one layer">выход одного слоя</div>
+    <div style="font-size:16px;font-weight:700;color:var(--purple);font-family:var(--mono)" data-en="matrix 3 × 768">матрица 3 × 768</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px" data-en="contextualized vector for each token">контекстуализированный вектор для каждого токена</div>
   </div>
-  <div class="note">
+  <div class="note" data-en="<strong>N layers:</strong> this block (attention + FFN) repeats 12–24 times. Each layer refines the representation. The final layer's output feeds into the decoder or is used for a classification task.">
     <strong>N слоёв:</strong> этот блок (attention + FFN) повторяется 12–24 раза. Каждый слой уточняет представление. Выход последнего слоя подаётся в декодер или используется для задачи классификации.
   </div>
 
   <div style="margin-top:32px;padding-top:24px;border-top:0.5px solid var(--border2)">
-    <div class="sec">итоговая схема</div>
-    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:2">
+    <div class="sec" data-en="full pipeline">итоговая схема</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:2" data-en="<span style='color:var(--text)'>word</span> → token id → <span style='color:var(--teal)'>embedding</span> + <span style='color:var(--amber)'>positional</span> → [<span style='color:var(--blue)'>Q</span><span style='color:var(--teal)'>K</span><span style='color:var(--amber)'>V</span> attention → FFN] × N → <span style='color:var(--purple)'>output</span>">
       <span style="color:var(--text)">слово</span> → токен id → <span style="color:var(--teal)">embedding</span> + <span style="color:var(--amber)">positional</span> → [<span style="color:var(--blue)">Q</span><span style="color:var(--teal)">K</span><span style="color:var(--amber)">V</span> attention → FFN] × N → <span style="color:var(--purple)">выход</span>
     </div>
   </div>
@@ -343,9 +343,9 @@ input[type=range]{flex:1;accent-color:var(--purple)}
 
 <!-- nav -->
 <div class="nav-row">
-  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← назад</button>
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled data-en="← back">← назад</button>
   <span class="counter" id="counter">1 / 6</span>
-  <button class="nav-btn" id="nextBtn" onclick="go(1)">далее →</button>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)" data-en="next →">далее →</button>
 </div>
 </div>
 
@@ -353,28 +353,33 @@ input[type=range]{flex:1;accent-color:var(--purple)}
 
 <script>
 const STEPS=[
-  {id:'p0',label:'01 токены'},
-  {id:'p1',label:'02 embedding'},
-  {id:'p2',label:'03 позиция'},
-  {id:'p3',label:'04 Q K V'},
-  {id:'p4',label:'05 attention'},
-  {id:'p5',label:'06 FFN'},
+  {id:'p0',label:'01 токены',   en:'01 tokens'},
+  {id:'p1',label:'02 embedding',en:'02 embedding'},
+  {id:'p2',label:'03 позиция',  en:'03 position'},
+  {id:'p3',label:'04 Q K V',    en:'04 Q K V'},
+  {id:'p4',label:'05 attention',en:'05 attention'},
+  {id:'p5',label:'06 FFN',      en:'06 FFN'},
 ];
 let cur=0;
 
 const nav=document.getElementById('stepNav');
-STEPS.forEach((s,i)=>{
-  const b=document.createElement('button');
-  b.className='step-btn'+(i===0?' active':'');
-  b.textContent=s.label;
-  b.onclick=()=>jump(i);
-  nav.appendChild(b);
-});
+function buildNav(){
+  nav.innerHTML='';
+  STEPS.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='step-btn'+(i===cur?' active':'');
+    b.innerHTML=window.T?T(s.label,s.en):s.label;
+    b.dataset.en=s.en;
+    b.onclick=()=>jump(i);
+    nav.appendChild(b);
+  });
+}
+buildNav();
 
 function render(){
   STEPS.forEach((s,i)=>{
     document.getElementById(s.id).classList.toggle('active',i===cur);
-    nav.children[i].classList.toggle('active',i===cur);
+    if(nav.children[i]) nav.children[i].classList.toggle('active',i===cur);
   });
   document.getElementById('counter').textContent=(cur+1)+' / '+STEPS.length;
   document.getElementById('prevBtn').disabled=cur===0;
@@ -384,12 +389,19 @@ function render(){
 }
 function go(d){cur=Math.max(0,Math.min(STEPS.length-1,cur+d));render();}
 function jump(i){cur=i;render();}
+window.onLangChange=function(){buildNav();render();if(window.applyLang)applyLang();};
 
 function updateK(v){
   v = parseInt(v);
   document.getElementById('kVal').textContent = v;
   document.getElementById('kValCanvas').textContent = v;
-  const notes = {
+  const notes = window.LANG==='en' ? {
+    100:   'very small — all waves are fast, hard to distinguish distant positions',
+    1000:  'small — short period range (~6 — ~6280 positions)',
+    10000: 'standard from "Attention Is All You Need" (2017)',
+    50000: 'large — slow waves are stretched, better for long texts',
+    100000:'very large — even smoother position "counter"'
+  } : {
     100:   'очень маленькое — все волны быстрые, трудно различить далёкие позиции',
     1000:  'малое — короткий диапазон периодов (~6 — ~6280 позиций)',
     10000: 'стандарт из "Attention Is All You Need" (2017)',
@@ -491,13 +503,14 @@ function updateKExplain(k){
   const midPeriod = (2*Math.PI*Math.pow(k, 2*midI/d)).toFixed(0);
   const el = document.getElementById('kExplain');
   if(!el) return;
+  const L = window.LANG==='en';
   el.innerHTML =
-    `<span style="color:var(--purple)">i=0 (быстрая):</span> период ≈ ${minPeriod} позиции — различает соседей<br>`+
-    `<span style="color:var(--teal)">i=${midI} (средняя):</span> период ≈ ${midPeriod} позиций — различает фразы<br>`+
-    `<span style="color:var(--amber)">i=${d/2-1} (медленная):</span> период ≈ ${maxPeriod} позиций — различает дальние части текста<br>`+
-    `<span style="color:var(--blue)">k = ${k}:</span> диапазон периодов от ${minPeriod} до ${maxPeriod} позиций`+
-    (k<1000?` <span style="color:var(--coral)">← слишком узкий, далёкие позиции неразличимы</span>`:
-     k>50000?` <span style="color:var(--teal)">← подходит для длинных контекстов (100k+)</span>`:'');
+    `<span style="color:var(--purple)">i=0 (${L?'fast':'быстрая'}):</span> ${L?'period':'период'} ≈ ${minPeriod} ${L?'positions — tells apart neighbors':'позиции — различает соседей'}<br>`+
+    `<span style="color:var(--teal)">i=${midI} (${L?'medium':'средняя'}):</span> ${L?'period':'период'} ≈ ${midPeriod} ${L?'positions — tells apart phrases':'позиций — различает фразы'}<br>`+
+    `<span style="color:var(--amber)">i=${d/2-1} (${L?'slow':'медленная'}):</span> ${L?'period':'период'} ≈ ${maxPeriod} ${L?'positions — tells apart distant parts':'позиций — различает дальние части текста'}<br>`+
+    `<span style="color:var(--blue)">k = ${k}:</span> ${L?'period range from':'диапазон периодов от'} ${minPeriod} ${L?'to':'до'} ${maxPeriod} ${L?'positions':'позиций'}`+
+    (k<1000?` <span style="color:var(--coral)">← ${L?'too narrow, distant positions indistinguishable':'слишком узкий, далёкие позиции неразличимы'}</span>`:
+     k>50000?` <span style="color:var(--teal)">← ${L?'suitable for long contexts (100k+)':'подходит для длинных контекстов (100k+)'}</span>`:'');
 }
 
 const WORDS=['The','cat','sat'];
@@ -531,5 +544,6 @@ function updateAttention(pos){
 }
 updateAttention(1);
 </script>
+<script src="lang.js"></script>
 </body>
 </html>

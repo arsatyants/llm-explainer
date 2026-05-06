@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Как работают LLM — интерактивный курс</title>
+<title>How LLMs Work / Как работают LLM</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -112,14 +112,14 @@ body::before{content:'';position:fixed;inset:0;
 
   <!-- Hero -->
   <div class="hero">
-    <div class="hero-badge">интерактивный курс · deep learning</div>
-    <h1>Как работают<br><em>языковые модели</em></h1>
-    <p>Пошаговый разбор трансформера — от токена до вероятности следующего слова. Реальные числа, живые вычисления, никакого тумана.</p>
+    <div class="hero-badge" data-en="interactive course · deep learning">интерактивный курс · deep learning</div>
+    <h1 data-en="How<br><em>language models</em> work">Как работают<br><em>языковые модели</em></h1>
+    <p data-en="Step-by-step breakdown of the transformer — from token to next-word probability. Real numbers, live computations, no hand-waving.">Пошаговый разбор трансформера — от токена до вероятности следующего слова. Реальные числа, живые вычисления, никакого тумана.</p>
 
     <canvas id="heroCanvas" width="640" height="56"></canvas>
 
     <div class="flow-row">
-      <div class="flow-tok p">токен</div>
+      <div class="flow-tok p" data-en="token">токен</div>
       <div class="flow-arrow">→</div>
       <div class="flow-tok b">embedding</div>
       <div class="flow-arrow">→</div>
@@ -129,7 +129,7 @@ body::before{content:'';position:fixed;inset:0;
       <div class="flow-arrow">→</div>
       <div class="flow-tok c">logits</div>
       <div class="flow-arrow">→</div>
-      <div class="flow-tok p">следующий токен</div>
+      <div class="flow-tok p" data-en="next token">следующий токен</div>
     </div>
   </div>
 
@@ -139,17 +139,17 @@ body::before{content:'';position:fixed;inset:0;
     <a class="card card-llm" href="llm_modern_explainer.html">
       <div class="card-num">01</div>
       <div class="card-body">
-        <div class="card-label">современный LLM · GPT-4, Llama, Claude</div>
-        <div class="card-title">Современный LLM — как это работает</div>
-        <div class="card-desc">Архитектуры (encoder/decoder/seq2seq), каузальная маска интерактивно, сэмплинг с ползунками temperature/top-k/top-p, KV-кэш пошагово, современные блоки (RoPE · RMSNorm · SwiGLU · GQA), законы масштабирования, RLHF + DPO пайплайн.</div>
+        <div class="card-label" data-en="modern LLM · GPT-4, Llama, Claude">современный LLM · GPT-4, Llama, Claude</div>
+        <div class="card-title" data-en="Modern LLM — how it works">Современный LLM — как это работает</div>
+        <div class="card-desc" data-en="Architectures (encoder/decoder/seq2seq), interactive causal mask, sampling sliders for temperature/top-k/top-p, KV-cache step by step, modern blocks (RoPE · RMSNorm · SwiGLU · GQA), scaling laws, RLHF + DPO pipeline.">Архитектуры (encoder/decoder/seq2seq), каузальная маска интерактивно, сэмплинг с ползунками temperature/top-k/top-p, KV-кэш пошагово, современные блоки (RoPE · RMSNorm · SwiGLU · GQA), законы масштабирования, RLHF + DPO пайплайн.</div>
         <div class="card-tags">
-          <span class="tag">KV-кэш</span>
+          <span class="tag">KV-cache</span>
           <span class="tag">temperature / top-p</span>
           <span class="tag">RoPE</span>
           <span class="tag">GQA</span>
           <span class="tag">Chinchilla</span>
           <span class="tag">RLHF / DPO</span>
-          <span class="tag">7 шагов</span>
+          <span class="tag" data-en="7 steps">7 шагов</span>
         </div>
       </div>
       <div class="card-arrow">→</div>
@@ -160,17 +160,17 @@ body::before{content:'';position:fixed;inset:0;
     <a class="card card-enc" href="encoder_explainer.html">
       <div class="card-num">02</div>
       <div class="card-body">
-        <div class="card-label">энкодер · BERT-стиль</div>
-        <div class="card-title">Как работает энкодер трансформера</div>
-        <div class="card-desc">Путь токена от слова до контекстуализированного вектора. Токенизация, embedding lookup, positional encoding, Q/K/V проекции, attention scores, FFN. Интерактивные ползунки для каждого шага.</div>
+        <div class="card-label" data-en="encoder · BERT-style">энкодер · BERT-стиль</div>
+        <div class="card-title" data-en="How the transformer encoder works">Как работает энкодер трансформера</div>
+        <div class="card-desc" data-en="Token's journey from word to contextualized vector. Tokenization, embedding lookup, positional encoding, Q/K/V projections, attention scores, FFN. Interactive sliders at every step.">Путь токена от слова до контекстуализированного вектора. Токенизация, embedding lookup, positional encoding, Q/K/V проекции, attention scores, FFN. Интерактивные ползунки для каждого шага.</div>
         <div class="card-tags">
-          <span class="tag">токенизация</span>
+          <span class="tag" data-en="tokenization">токенизация</span>
           <span class="tag">embedding</span>
           <span class="tag">positional encoding</span>
           <span class="tag">Q K V</span>
           <span class="tag">attention</span>
           <span class="tag">FFN</span>
-          <span class="tag">6 шагов</span>
+          <span class="tag" data-en="6 steps">6 шагов</span>
         </div>
       </div>
       <div class="card-arrow">→</div>
@@ -181,16 +181,16 @@ body::before{content:'';position:fixed;inset:0;
     <a class="card card-dec" href="decoder_explainer.html">
       <div class="card-num">03</div>
       <div class="card-body">
-        <div class="card-label">декодер · GPT-стиль</div>
-        <div class="card-title">Декодер трансформера — шаг за шагом</div>
-        <div class="card-desc">d=4, все числа вычислены вручную. Трекер вектора "cat" показывает как меняются 4 числа на каждом этапе: embedding → +PE → masked attention → Add&amp;Norm → FFN → LM Head. Вычисление каузальной маски с реальными dot products.</div>
+        <div class="card-label" data-en="decoder · GPT-style">декодер · GPT-стиль</div>
+        <div class="card-title" data-en="Transformer decoder — step by step">Декодер трансформера — шаг за шагом</div>
+        <div class="card-desc" data-en='d=4, all numbers computed by hand. The "cat" vector tracker shows how 4 numbers change at each stage: embedding → +PE → masked attention → Add&amp;Norm → FFN → LM Head. Causal mask computed with real dot products.'>d=4, все числа вычислены вручную. Трекер вектора "cat" показывает как меняются 4 числа на каждом этапе: embedding → +PE → masked attention → Add&amp;Norm → FFN → LM Head. Вычисление каузальной маски с реальными dot products.</div>
         <div class="card-tags">
-          <span class="tag">авторегрессия</span>
-          <span class="tag">каузальная маска</span>
+          <span class="tag" data-en="autoregression">авторегрессия</span>
+          <span class="tag" data-en="causal mask">каузальная маска</span>
           <span class="tag">LayerNorm</span>
           <span class="tag">LM Head</span>
-          <span class="tag">реальные числа</span>
-          <span class="tag">6 шагов</span>
+          <span class="tag" data-en="real numbers">реальные числа</span>
+          <span class="tag" data-en="6 steps">6 шагов</span>
         </div>
       </div>
       <div class="card-arrow">→</div>
@@ -201,16 +201,16 @@ body::before{content:'';position:fixed;inset:0;
     <a class="card card-att" href="attention_explainer.html">
       <div class="card-num">04</div>
       <div class="card-body">
-        <div class="card-label">механизм attention · детальный разбор</div>
-        <div class="card-title">Scaled Dot-Product Attention — полная математика</div>
-        <div class="card-desc">d=3, 3 токена — достаточно мало, чтобы увидеть каждое перемножение. Кликабельная матрица оценок Q·Kᵀ: выбери ячейку и смотри скалярное произведение по элементам. Переключатель энкодер/декодер меняет маску и softmax в реальном времени.</div>
+        <div class="card-label" data-en="attention mechanism · detailed breakdown">механизм attention · детальный разбор</div>
+        <div class="card-title" data-en="Scaled Dot-Product Attention — full math">Scaled Dot-Product Attention — полная математика</div>
+        <div class="card-desc" data-en="d=3, 3 tokens — small enough to see every multiplication. Clickable Q·Kᵀ score matrix: pick a cell and watch the element-wise dot product. Encoder/decoder toggle changes the mask and softmax in real time.">d=3, 3 токена — достаточно мало, чтобы увидеть каждое перемножение. Кликабельная матрица оценок Q·Kᵀ: выбери ячейку и смотри скалярное произведение по элементам. Переключатель энкодер/декодер меняет маску и softmax в реальном времени.</div>
         <div class="card-tags">
-          <span class="tag">матрица Q·Kᵀ</span>
-          <span class="tag">масштабирование</span>
+          <span class="tag">Q·Kᵀ matrix</span>
+          <span class="tag" data-en="scaling">масштабирование</span>
           <span class="tag">softmax</span>
-          <span class="tag">взвешенная сумма V</span>
-          <span class="tag">энкодер vs декодер</span>
-          <span class="tag">7 шагов</span>
+          <span class="tag" data-en="weighted sum V">взвешенная сумма V</span>
+          <span class="tag" data-en="encoder vs decoder">энкодер vs декодер</span>
+          <span class="tag" data-en="7 steps">7 шагов</span>
         </div>
       </div>
       <div class="card-arrow">→</div>
@@ -221,17 +221,17 @@ body::before{content:'';position:fixed;inset:0;
     <a class="card card-agt" href="agents_explainer.html">
       <div class="card-num">05</div>
       <div class="card-body">
-        <div class="card-label">агенты · Claude · GPT-4o · Gemini</div>
-        <div class="card-title">LLM-агенты с циклом обратной связи</div>
-        <div class="card-desc">Как современные модели превращаются в агентов: tool use с реальным JSON запрос/ответ, пошаговый ReAct-цикл, extended thinking (скрытый черновик рассуждений), типы памяти (контекст / внешняя / кэш), мульти-агентная оркестрация и MCP.</div>
+        <div class="card-label" data-en="agents · Claude · GPT-4o · Gemini">агенты · Claude · GPT-4o · Gemini</div>
+        <div class="card-title" data-en="LLM agents with feedback loop">LLM-агенты с циклом обратной связи</div>
+        <div class="card-desc" data-en="How modern models become agents: tool use with real JSON request/response, step-by-step ReAct loop, extended thinking (hidden reasoning draft), memory types (context / external / cache), multi-agent orchestration and MCP.">Как современные модели превращаются в агентов: tool use с реальным JSON запрос/ответ, пошаговый ReAct-цикл, extended thinking (скрытый черновик рассуждений), типы памяти (контекст / внешняя / кэш), мульти-агентная оркестрация и MCP.</div>
         <div class="card-tags">
           <span class="tag">tool use</span>
-          <span class="tag">ReAct цикл</span>
+          <span class="tag" data-en="ReAct loop">ReAct цикл</span>
           <span class="tag">extended thinking</span>
           <span class="tag">KV cache / prompt cache</span>
-          <span class="tag">мульти-агенты</span>
+          <span class="tag" data-en="multi-agents">мульти-агенты</span>
           <span class="tag">MCP</span>
-          <span class="tag">6 шагов</span>
+          <span class="tag" data-en="6 steps">6 шагов</span>
         </div>
       </div>
       <div class="card-arrow">→</div>
@@ -239,7 +239,7 @@ body::before{content:'';position:fixed;inset:0;
 
   </div>
 
-  <div class="foot">
+  <div class="foot" data-en="d_model = 768 &amp;nbsp;·&amp;nbsp; 12 heads &amp;nbsp;·&amp;nbsp; 12 layers &amp;nbsp;·&amp;nbsp; 110M params<br><span>BERT-base</span>, 2018 — starting point of modern LLMs">
     d_model = 768 &nbsp;·&nbsp; 12 heads &nbsp;·&nbsp; 12 layers &nbsp;·&nbsp; 110M params<br>
     <span>BERT-base</span>, 2018 — отправная точка современных LLM
   </div>
@@ -290,5 +290,6 @@ body::before{content:'';position:fixed;inset:0;
   frame();
 })();
 </script>
+<script src="lang.js"></script>
 </body>
 </html>

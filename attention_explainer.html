@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Механизм Attention — детальный разбор</title>
+<title>Attention Mechanism — Detailed Breakdown / Механизм Attention</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -114,28 +114,28 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
 <body>
 <div class="wrap">
 <div class="nav-links">
-  <a class="nav-link" href="encoder_explainer.html">← Энкодер</a>
-  <a class="nav-link" href="decoder_explainer.html">→ Декодер</a>
-  <a class="nav-link" href="llm_modern_explainer.html">→ Современный LLM</a>
+  <a class="nav-link" href="encoder_explainer.html" data-en="← Encoder">← Энкодер</a>
+  <a class="nav-link" href="decoder_explainer.html" data-en="→ Decoder">→ Декодер</a>
+  <a class="nav-link" href="llm_modern_explainer.html" data-en="→ Modern LLM">→ Современный LLM</a>
 </div>
 <div class="label">deep learning / attention</div>
-<h1>Механизм<br><span>Attention</span> — детальный разбор</h1>
-<p class="subtitle">Полная математика Scaled Dot-Product Attention с реальными числами. d=3, 3 токена — достаточно мало, чтобы увидеть каждое перемножение.</p>
+<h1 data-en="The<br><span>Attention</span> mechanism — detailed">Механизм<br><span>Attention</span> — детальный разбор</h1>
+<p class="subtitle" data-en="Full math of Scaled Dot-Product Attention with real numbers. d=3, 3 tokens — small enough to see every multiplication.">Полная математика Scaled Dot-Product Attention с реальными числами. d=3, 3 токена — достаточно мало, чтобы увидеть каждое перемножение.</p>
 
 <div class="step-nav" id="stepNav"></div>
 <div class="card">
 
 <!-- STEP 0: Overview + X matrix -->
 <div class="panel active" id="p0">
-  <div class="sec">шаг 1 / 7 — входные данные</div>
-  <h2>Входные векторы X</h2>
-  <p style="color:var(--muted);margin-bottom:16px">После embedding + positional encoding каждый токен — вектор размером d=3. Три токена → матрица X размером 3×3.</p>
+  <div class="sec" data-en="step 1 / 7 — input data">шаг 1 / 7 — входные данные</div>
+  <h2 data-en="Input vectors X">Входные векторы X</h2>
+  <p style="color:var(--muted);margin-bottom:16px" data-en="After embedding + positional encoding each token is a d=3 vector. Three tokens → matrix X of size 3×3.">После embedding + positional encoding каждый токен — вектор размером d=3. Три токена → матрица X размером 3×3.</p>
 
   <div class="formula">Attention(Q,K,V) = softmax( Q · Kᵀ / √d<sub>k</sub> ) · V</div>
 
   <div class="mx-row" style="justify-content:center">
     <div class="mx-block">
-      <div class="mx-title">X — матрица входов (3 × d=3)</div>
+      <div class="mx-title" data-en="X — input matrix (3 × d=3)">X — матрица входов (3 × d=3)</div>
       <div class="mx-wrap"><div class="mx" style="grid-template-columns:auto repeat(3,1fr)">
         <div class="mx-cell" style="background:transparent;border-color:transparent;font-size:10px"></div>
         <div class="mx-cell" style="color:var(--muted);font-size:10px">dim₀</div>
@@ -154,25 +154,25 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0">
     <div style="background:var(--blue-dim);border:0.5px solid var(--blue);border-radius:8px;padding:12px;text-align:center;color:var(--blue)">
       <div style="font-family:var(--mono);font-size:16px;font-weight:700">W<sub>Q</sub></div>
-      <div style="font-size:11px;margin-top:4px">3×3, обучаемая<br>"что я ищу?"</div>
+      <div style="font-size:11px;margin-top:4px" data-en='3×3, learnable<br>"what am I looking for?"'>3×3, обучаемая<br>"что я ищу?"</div>
     </div>
     <div style="background:var(--teal-dim);border:0.5px solid var(--teal);border-radius:8px;padding:12px;text-align:center;color:var(--teal)">
       <div style="font-family:var(--mono);font-size:16px;font-weight:700">W<sub>K</sub></div>
-      <div style="font-size:11px;margin-top:4px">3×3, обучаемая<br>"что я предлагаю?"</div>
+      <div style="font-size:11px;margin-top:4px" data-en='3×3, learnable<br>"what do I offer?"'>3×3, обучаемая<br>"что я предлагаю?"</div>
     </div>
     <div style="background:var(--amber-dim);border:0.5px solid var(--amber);border-radius:8px;padding:12px;text-align:center;color:var(--amber)">
       <div style="font-family:var(--mono);font-size:16px;font-weight:700">W<sub>V</sub></div>
-      <div style="font-size:11px;margin-top:4px">3×3, обучаемая<br>"что я отдаю?"</div>
+      <div style="font-size:11px;margin-top:4px" data-en='3×3, learnable<br>"what do I give?"'>3×3, обучаемая<br>"что я отдаю?"</div>
     </div>
   </div>
-  <div class="note"><strong>Цель:</strong> умножить X на три весовые матрицы → Q, K, V. Затем вычислить softmax(Q·Kᵀ/√d) · V. Всё делается параллельно для всех токенов.</div>
+  <div class="note" data-en="<strong>Goal:</strong> multiply X by three weight matrices → Q, K, V. Then compute softmax(Q·Kᵀ/√d) · V. Everything is done in parallel for all tokens."><strong>Цель:</strong> умножить X на три весовые матрицы → Q, K, V. Затем вычислить softmax(Q·Kᵀ/√d) · V. Всё делается параллельно для всех токенов.</div>
 </div>
 
 <!-- STEP 1: Q projection -->
 <div class="panel" id="p1">
-  <div class="sec">шаг 2 / 7 — проекция Q</div>
+  <div class="sec" data-en="step 2 / 7 — Q projection">шаг 2 / 7 — проекция Q</div>
   <h2>Q = X · W<sub>Q</sub></h2>
-  <p style="color:var(--muted);margin-bottom:14px">Каждая строка X умножается на W<sub>Q</sub>. Выбери токен, чтобы увидеть вычисление.</p>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="Each row of X is multiplied by W<sub>Q</sub>. Select a token to see the computation.">Каждая строка X умножается на W<sub>Q</sub>. Выбери токен, чтобы увидеть вычисление.</p>
 
   <div class="tok-sel" id="qTokSel"></div>
 
@@ -193,14 +193,14 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
     </div>
   </div>
   <div class="compute-box" id="qCompute"></div>
-  <div class="note"><strong>Параллелизм:</strong> на практике Q = X @ W_Q — одно матричное умножение для всех токенов. Здесь видны все три строки; мы выделяем одну для наглядности.</div>
+  <div class="note" data-en="<strong>Parallelism:</strong> in practice Q = X @ W_Q is a single matrix multiply for all tokens. All three rows are shown; we highlight one for clarity."><strong>Параллелизм:</strong> на практике Q = X @ W_Q — одно матричное умножение для всех токенов. Здесь видны все три строки; мы выделяем одну для наглядности.</div>
 </div>
 
 <!-- STEP 2: K projection -->
 <div class="panel" id="p2">
-  <div class="sec">шаг 3 / 7 — проекция K</div>
+  <div class="sec" data-en="step 3 / 7 — K projection">шаг 3 / 7 — проекция K</div>
   <h2>K = X · W<sub>K</sub></h2>
-  <p style="color:var(--muted);margin-bottom:14px">K содержит "ключи" — что каждый токен предлагает другим токенам для сравнения.</p>
+  <p style="color:var(--muted);margin-bottom:14px" data-en='K contains "keys" — what each token offers to other tokens for comparison.'>K содержит "ключи" — что каждый токен предлагает другим токенам для сравнения.</p>
 
   <div class="tok-sel" id="kTokSel"></div>
 
@@ -221,14 +221,14 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
     </div>
   </div>
   <div class="compute-box" id="kCompute"></div>
-  <div class="note"><strong>K vs Q:</strong> Q и K живут в одном пространстве (d_k), поэтому их dot product осмыслен. V — другое пространство, его роль — передавать информацию, а не участвовать в сравнении.</div>
+  <div class="note" data-en="<strong>K vs Q:</strong> Q and K live in the same space (d_k), so their dot product is meaningful. V is a separate space — its role is to carry information, not to participate in comparison."><strong>K vs Q:</strong> Q и K живут в одном пространстве (d_k), поэтому их dot product осмыслен. V — другое пространство, его роль — передавать информацию, а не участвовать в сравнении.</div>
 </div>
 
 <!-- STEP 3: V projection -->
 <div class="panel" id="p3">
-  <div class="sec">шаг 4 / 7 — проекция V</div>
+  <div class="sec" data-en="step 4 / 7 — V projection">шаг 4 / 7 — проекция V</div>
   <h2>V = X · W<sub>V</sub></h2>
-  <p style="color:var(--muted);margin-bottom:14px">V — "значения". После того, как веса attention определены через Q·Kᵀ, именно V-вектора складываются с найденными весами.</p>
+  <p style="color:var(--muted);margin-bottom:14px" data-en='V — "values". Once attention weights are computed via Q·Kᵀ, these V-vectors are summed with those weights.'>V — "значения". После того, как веса attention определены через Q·Kᵀ, именно V-вектора складываются с найденными весами.</p>
 
   <div class="tok-sel" id="vTokSel"></div>
 
@@ -249,48 +249,49 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
     </div>
   </div>
   <div class="compute-box" id="vCompute"></div>
-  <div class="note"><strong>Разделение ролей:</strong> Q·Kᵀ решает "кому уделить внимание", V решает "что именно передать". Это позволяет модели отдельно обучать паттерн внимания и содержание.</div>
+  <div class="note" data-en='<strong>Separation of roles:</strong> Q·Kᵀ decides "who to attend to"; V decides "what to pass on". This lets the model learn attention patterns and content separately.'><strong>Разделение ролей:</strong> Q·Kᵀ решает "кому уделить внимание", V решает "что именно передать". Это позволяет модели отдельно обучать паттерн внимания и содержание.</div>
 </div>
 
 <!-- STEP 4: Score matrix -->
 <div class="panel" id="p4">
-  <div class="sec">шаг 5 / 7 — оценки S = Q · Kᵀ</div>
-  <h2>Матрица оценок S = Q · K<sup>T</sup></h2>
-  <p style="color:var(--muted);margin-bottom:14px">Каждая строка = один Q-вектор. Каждый столбец = один K-вектор. S[i,j] = скалярное произведение Q[i] · K[j]. <strong style="color:var(--purple)">Нажми на ячейку</strong>, чтобы увидеть вычисление.</p>
+  <div class="sec" data-en="step 5 / 7 — scores S = Q · Kᵀ">шаг 5 / 7 — оценки S = Q · Kᵀ</div>
+  <h2 data-en="Score matrix S = Q · K<sup>T</sup>">Матрица оценок S = Q · K<sup>T</sup></h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="Each row = one Q-vector. Each column = one K-vector. S[i,j] = dot product Q[i] · K[j]. <strong style='color:var(--purple)'>Click a cell</strong> to see the computation.">Каждая строка = один Q-вектор. Каждый столбец = один K-вектор. S[i,j] = скалярное произведение Q[i] · K[j]. <strong style="color:var(--purple)">Нажми на ячейку</strong>, чтобы увидеть вычисление.</p>
 
   <div class="mx-row" style="justify-content:center">
     <div class="mx-block">
-      <div class="mx-title" style="color:var(--blue)">Q (строки)</div>
+      <div class="mx-title" style="color:var(--blue)" data-en="Q (rows)">Q (строки)</div>
       <div class="mx-wrap"><div class="mx" id="sQmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
     </div>
     <div style="align-self:center;font-size:16px;color:var(--muted);padding:0 4px">×</div>
     <div class="mx-block">
-      <div class="mx-title" style="color:var(--teal)">Kᵀ (столбцы)</div>
+      <div class="mx-title" style="color:var(--teal)" data-en="Kᵀ (columns)">Kᵀ (столбцы)</div>
       <div class="mx-wrap"><div class="mx" id="sKmx" style="grid-template-columns:repeat(3,1fr)"></div></div>
     </div>
     <div style="align-self:center;font-size:16px;color:var(--muted);padding:0 4px">=</div>
     <div class="mx-block">
-      <div class="mx-title">S = Q·Kᵀ (нажми)</div>
+      <div class="mx-title" data-en="S = Q·Kᵀ (click)">S = Q·Kᵀ (нажми)</div>
       <div class="mx-wrap"><div class="mx" id="sSmx" style="grid-template-columns:auto repeat(3,1fr)"></div></div>
     </div>
   </div>
   <div class="compute-box" id="sCompute">← выбери ячейку в матрице S</div>
-  <div class="note"><strong>Интерпретация:</strong> большое S[i,j] → Q[i] и K[j] "похожи" → токен i уделит много внимания токену j. Пока это сырые числа, без нормализации.</div>
+  <div class="note" data-en='<strong>Interpretation:</strong> large S[i,j] → Q[i] and K[j] are "similar" → token i will attend heavily to token j. These are raw scores — not yet normalized.'><strong>Интерпретация:</strong> большое S[i,j] → Q[i] и K[j] "похожи" → токен i уделит много внимания токену j. Пока это сырые числа, без нормализации.</div>
 </div>
 
 <!-- STEP 5: Scale + mask + softmax -->
 <div class="panel" id="p5">
-  <div class="sec">шаг 6 / 7 — масштаб · маска · softmax</div>
+  <div class="sec" data-en="step 6 / 7 — scale · mask · softmax">шаг 6 / 7 — масштаб · маска · softmax</div>
   <h2>S_scaled = S / √d<sub>k</sub> → Mask → Softmax</h2>
-  <p style="color:var(--muted);margin-bottom:12px">Три операции: масштабирование, маскирование (только в декодере), softmax по каждой строке.</p>
+  <p style="color:var(--muted);margin-bottom:12px" data-en="Three operations: scaling, masking (decoder only), softmax over each row.">Три операции: масштабирование, маскирование (только в декодере), softmax по каждой строке.</p>
 
   <div class="mode-toggle">
-    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Режим:</span>
-    <button class="mode-btn active" id="modeEnc" onclick="setMode('enc')">Энкодер (без маски)</button>
-    <button class="mode-btn" id="modeDec" onclick="setMode('dec')">Декодер (каузальная маска)</button>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" data-en="Mode:">Режим:</span>
+    <button class="mode-btn active" id="modeEnc" onclick="setMode('enc')" data-en="Encoder (no mask)">Энкодер (без маски)</button>
+    <button class="mode-btn" id="modeDec" onclick="setMode('dec')" data-en="Decoder (causal mask)">Декодер (каузальная маска)</button>
   </div>
 
-  <div style="font-family:var(--mono);font-size:12px;color:var(--muted);margin:8px 0">
+  <div style="font-family:var(--mono);font-size:12px;color:var(--muted);margin:8px 0"
+       data-en="√d<sub>k</sub> = √3 ≈ <span style='color:var(--amber)'>1.732</span> &nbsp;→&nbsp; divide all scores by 1.732">
     √d<sub>k</sub> = √3 ≈ <span style="color:var(--amber)">1.732</span> &nbsp;→&nbsp; делим все оценки на 1.732
   </div>
 
@@ -311,43 +312,43 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
     </div>
     <div style="align-self:center;font-size:13px;color:var(--muted);padding:0 4px">softmax</div>
     <div class="mx-block">
-      <div class="mx-title" style="color:var(--purple)">Веса W</div>
+      <div class="mx-title" style="color:var(--purple)" data-en="Weights W">Веса W</div>
       <div class="mx-wrap"><div class="mx" id="ssWMx" style="grid-template-columns:auto repeat(3,1fr)"></div></div>
     </div>
   </div>
 
   <div class="compute-box" id="ssCompute" style="margin-top:12px"></div>
-  <div class="note"><strong>Зачем делить?</strong> При больших d_k dot products растут пропорционально √d_k → градиенты softmax исчезают. Деление на √d_k стабилизирует обучение. Это единственная причина — эвристика, подтверждённая практикой.</div>
+  <div class="note" data-en="<strong>Why divide?</strong> For large d_k dot products grow proportionally to √d_k → softmax gradients vanish. Dividing by √d_k stabilizes training. That is the only reason — a heuristic confirmed by practice."><strong>Зачем делить?</strong> При больших d_k dot products растут пропорционально √d_k → градиенты softmax исчезают. Деление на √d_k стабилизирует обучение. Это единственная причина — эвристика, подтверждённая практикой.</div>
 </div>
 
 <!-- STEP 6: Weighted sum -->
 <div class="panel" id="p6">
-  <div class="sec">шаг 7 / 7 — взвешенная сумма</div>
-  <h2>Выход = W · V</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Для каждого токена выход = взвешенная сумма V-векторов. Выбери токен для просмотра.</p>
+  <div class="sec" data-en="step 7 / 7 — weighted sum">шаг 7 / 7 — взвешенная сумма</div>
+  <h2 data-en="Output = W · V">Выход = W · V</h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="For each token the output = weighted sum of V-vectors. Select a token to see the details.">Для каждого токена выход = взвешенная сумма V-векторов. Выбери токен для просмотра.</p>
 
   <div class="tok-sel" id="outTokSel"></div>
   <div class="mode-toggle">
-    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Режим:</span>
-    <button class="mode-btn active" id="outModeEnc" onclick="setOutMode('enc')">Энкодер</button>
-    <button class="mode-btn" id="outModeDec" onclick="setOutMode('dec')">Декодер</button>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" data-en="Mode:">Режим:</span>
+    <button class="mode-btn active" id="outModeEnc" onclick="setOutMode('enc')" data-en="Encoder">Энкодер</button>
+    <button class="mode-btn" id="outModeDec" onclick="setOutMode('dec')" data-en="Decoder">Декодер</button>
   </div>
 
   <div class="compute-box" id="outCompute"></div>
 
   <div style="margin-top:16px;padding:14px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
-    <div class="sec">Все выходные векторы (текущий режим)</div>
+    <div class="sec" data-en="All output vectors (current mode)">Все выходные векторы (текущий режим)</div>
     <div id="outAll"></div>
   </div>
 
-  <div class="note note-teal" style="margin-top:16px"><strong>Контекстуализация:</strong> входной вектор "cat" = [0.10, 0.80, 0.60]. Выходной = взвешенная сумма V-векторов соседей. Теперь "cat" "знает" о контексте — это главная ценность attention.</div>
+  <div class="note note-teal" style="margin-top:16px" data-en='<strong>Contextualization:</strong> input vector "cat" = [0.10, 0.80, 0.60]. Output = weighted sum of neighbors&#39; V-vectors. Now "cat" "knows" about its context — that is the main value of attention.'><strong>Контекстуализация:</strong> входной вектор "cat" = [0.10, 0.80, 0.60]. Выходной = взвешенная сумма V-векторов соседей. Теперь "cat" "знает" о контексте — это главная ценность attention.</div>
 </div>
 
 <!-- nav -->
 <div class="nav-row">
-  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← назад</button>
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled data-en="← back">← назад</button>
   <span class="counter" id="counter">1 / 7</span>
-  <button class="nav-btn" id="nextBtn" onclick="go(1)">далее →</button>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)" data-en="next →">далее →</button>
 </div>
 </div>
 </div>
@@ -378,25 +379,31 @@ let outMode = 'enc';
 
 // ── Nav ───────────────────────────────────────────────────────────────
 const STEPS = [
-  {id:'p0',label:'01 входные данные'},
-  {id:'p1',label:'02 проекция Q'},
-  {id:'p2',label:'03 проекция K'},
-  {id:'p3',label:'04 проекция V'},
-  {id:'p4',label:'05 оценки S'},
-  {id:'p5',label:'06 softmax'},
-  {id:'p6',label:'07 выход'},
+  {id:'p0',label:'01 входные данные',en:'01 input data'},
+  {id:'p1',label:'02 проекция Q',    en:'02 Q projection'},
+  {id:'p2',label:'03 проекция K',    en:'03 K projection'},
+  {id:'p3',label:'04 проекция V',    en:'04 V projection'},
+  {id:'p4',label:'05 оценки S',      en:'05 scores S'},
+  {id:'p5',label:'06 softmax',       en:'06 softmax'},
+  {id:'p6',label:'07 выход',         en:'07 output'},
 ];
 let cur = 0;
 const nav = document.getElementById('stepNav');
-STEPS.forEach((s,i)=>{
-  const b=document.createElement('button');
-  b.className='step-btn'+(i===0?' active':'');
-  b.textContent=s.label; b.onclick=()=>jump(i); nav.appendChild(b);
-});
+function buildNav(){
+  nav.innerHTML='';
+  STEPS.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='step-btn'+(i===cur?' active':'');
+    b.innerHTML=window.T?T(s.label,s.en):s.label;
+    b.dataset.en=s.en;
+    b.onclick=()=>jump(i); nav.appendChild(b);
+  });
+}
+buildNav();
 function render(){
   STEPS.forEach((s,i)=>{
     document.getElementById(s.id).classList.toggle('active',i===cur);
-    nav.children[i].classList.toggle('active',i===cur);
+    if(nav.children[i]) nav.children[i].classList.toggle('active',i===cur);
   });
   document.getElementById('counter').textContent=(cur+1)+' / '+STEPS.length;
   document.getElementById('prevBtn').disabled=cur===0;
@@ -410,6 +417,7 @@ function render(){
 }
 function go(d){cur=Math.max(0,Math.min(STEPS.length-1,cur+d));render();}
 function jump(i){cur=i;render();}
+window.onLangChange=function(){buildNav();render();if(window.applyLang)applyLang();};
 
 // ── Helpers ───────────────────────────────────────────────────────────
 function fmt(v){return (v>=0?'+':'')+v.toFixed(3);}
@@ -461,14 +469,15 @@ function initProj(type){
   // Computation detail: show full dot-product breakdown for selected token
   const x = X[t];
   const r = R[t];
-  let html = `<span style="color:var(--muted)">x[${t}] = ${TOKS[t]} × W<sub>${type.toUpperCase()}</sub> — побайтовое вычисление</span><br><br>`;
+  const L = window.T && window.LANG === 'en';
+  let html = `<span style="color:var(--muted)">x[${t}] = ${TOKS[t]} × W<sub>${type.toUpperCase()}</sub> — ${L ? 'element-wise computation' : 'побайтовое вычисление'}</span><br><br>`;
   for(let d=0;d<3;d++){
     const terms = x.map((xv,k)=>`<span class="hl-w">${fmt(xv)}</span>·${fmt(W[k][d])}`).join(' + ');
     const prod = x.reduce((s,xv,k)=>s+xv*W[k][d],0);
     const clsHl = type==='q'?'hl-q':type==='k'?'hl-k':'hl-v';
-    html += `dim${d}: ${terms} = <span class="${clsHl}">${fmt(prod)}</span>  (проверка: ${fmt(r[d])})<br>`;
+    html += `dim${d}: ${terms} = <span class="${clsHl}">${fmt(prod)}</span>  (${L ? 'check' : 'проверка'}: ${fmt(r[d])})<br>`;
   }
-  html += `<br><span style="color:var(--muted)">Результат ${TOKS[t]}: [${r.map(v=>`<span class="${type==='q'?'hl-q':type==='k'?'hl-k':'hl-v'}">${fmt(v)}</span>`).join(', ')}]</span>`;
+  html += `<br><span style="color:var(--muted)">${L ? 'Result' : 'Результат'} ${TOKS[t]}: [${r.map(v=>`<span class="${type==='q'?'hl-q':type==='k'?'hl-k':'hl-v'}">${fmt(v)}</span>`).join(', ')}]</span>`;
   document.getElementById(type+'Compute').innerHTML = html;
 }
 
@@ -496,7 +505,7 @@ function renderScoreMatrix(){
   });
   document.getElementById('sSmx').innerHTML = html;
   if(selRow>=0) updateScoreDetail();
-  else document.getElementById('sCompute').innerHTML = '← нажми на ячейку в матрице S, чтобы увидеть вычисление';
+  else document.getElementById('sCompute').innerHTML = T?T('← нажми на ячейку в матрице S, чтобы увидеть вычисление','← click a cell in matrix S to see the computation'):'← нажми на ячейку в матрице S, чтобы увидеть вычисление';
 }
 function selectScore(r,c){selRow=r;selCol=c;renderScoreMatrix();}
 function updateScoreDetail(){
@@ -555,8 +564,9 @@ function initSoftmax(){
   });
   document.getElementById('ssWMx').innerHTML = wHtml;
 
-  document.getElementById('maskArrow').textContent = masked?'+маска':'';
-  document.getElementById('ssTitle').textContent = masked?'после маски':'';
+  const isEN = window.T && window.LANG === 'en';
+  document.getElementById('maskArrow').textContent = masked ? (isEN ? '+mask' : '+маска') : '';
+  document.getElementById('ssTitle').textContent = masked ? (isEN ? 'after mask' : 'после маски') : '';
 
   // Compute detail for row 1 (cat)
   const row = SS[1];
@@ -564,7 +574,7 @@ function initSoftmax(){
   const e0=Math.exp(row[0]).toFixed(3), e1=Math.exp(row[1]).toFixed(3), e2=m?'0.000':Math.exp(row[2]).toFixed(3);
   const sum = m?(Math.exp(row[0])+Math.exp(row[1])).toFixed(3):(Math.exp(row[0])+Math.exp(row[1])+Math.exp(row[2])).toFixed(3);
   document.getElementById('ssCompute').innerHTML =
-    `Строка "cat":<br>`+
+    `${T?T('Строка','Row'):'Строка'} "cat":<br>`+
     `scaled scores: [<span class="hl-q">${fmt(row[0])}</span>, <span class="hl-q">${fmt(row[1])}</span>, <span class="hl-q">${m?'−∞':fmt(row[2])}</span>]<br>`+
     `exp:          [${e0}, ${e1}, ${e2}]<br>`+
     `sum = ${e0} + ${e1}${m?'':(` + ${e2}`)} = <span class="hl-r">${sum}</span><br>`+
@@ -598,7 +608,7 @@ function initOut(){
   const w=W[t];
   const masked = outMode==='dec';
 
-  let html=`Выход[${TOKS[t]}] = `;
+  let html=`${T?T('Выход','Output'):'Выход'}[${TOKS[t]}] = `;
   const parts=[];
   V.forEach((vrow,j)=>{
     if(masked&&j>t) return;
@@ -626,7 +636,7 @@ function initOut(){
     allHtml+=`<div style="display:flex;align-items:center;gap:10px;margin:6px 0;font-family:var(--mono);font-size:12px">
       <span style="color:var(--muted);width:48px">${TOKS[r]}</span>
       <span style="color:var(--purple)">[${row.map(v=>fmt(v)).join(', ')}]</span>
-      <span style="color:var(--muted);font-size:10px">${r===t?'← выбран':''}</span>
+      <span style="color:var(--muted);font-size:10px">${r===t?(T?T('← выбран','← selected'):'← выбран'):''}</span>
     </div>`;
   });
   document.getElementById('outAll').innerHTML=allHtml;
@@ -636,6 +646,11 @@ function initOut(){
 initProj('q'); initProj('k'); initProj('v');
 initScores(); initSoftmax(); initOut();
 render();
+</script>
+<script src="lang.js"></script>
+<script>
+// re-expose so lang.js can call back after init
+if(window.onLangChange) window.onLangChange();
 </script>
 </body>
 </html>

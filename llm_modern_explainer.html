@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Современный LLM — как это работает</title>
+<title>Modern LLM — How It Works / Современный LLM</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -171,10 +171,10 @@ input[type=range]{flex:1;accent-color:var(--purple)}
 <div class="wrap">
 
 <div class="header">
-  <a class="back-link" href="encoder_explainer.html">← Часть 1: Энкодер</a>
-  <div class="label">deep learning / nlp — часть 2</div>
-  <h1>Современный<br><span>LLM</span> — как это работает</h1>
-  <p class="subtitle">Декодер, авторегрессия, KV-кэш, современные архитектурные блоки (RoPE, RMSNorm, SwiGLU, GQA) и RLHF — шаг за шагом.</p>
+  <a class="back-link" href="encoder_explainer.html" data-en="← Part 1: Encoder">← Часть 1: Энкодер</a>
+  <div class="label" data-en="deep learning / nlp — part 2">deep learning / nlp — часть 2</div>
+  <h1 data-en="Modern<br><span>LLM</span> — how it works">Современный<br><span>LLM</span> — как это работает</h1>
+  <p class="subtitle" data-en="Decoder, autoregression, KV-cache, modern architectural blocks (RoPE, RMSNorm, SwiGLU, GQA) and RLHF — step by step.">Декодер, авторегрессия, KV-кэш, современные архитектурные блоки (RoPE, RMSNorm, SwiGLU, GQA) и RLHF — шаг за шагом.</p>
 </div>
 
 <div class="step-nav" id="stepNav"></div>
@@ -183,16 +183,16 @@ input[type=range]{flex:1;accent-color:var(--purple)}
 
 <!-- STEP 0 -->
 <div class="panel active" id="p0">
-  <div class="sec">шаг 1 / 7</div>
-  <h2>Три семейства архитектур</h2>
-  <p style="color:var(--muted);margin-bottom:20px">Все современные LLM — варианты трансформера. Главное отличие — тип attention.</p>
+  <div class="sec" data-en="step 1 / 7">шаг 1 / 7</div>
+  <h2 data-en="Three architecture families">Три семейства архитектур</h2>
+  <p style="color:var(--muted);margin-bottom:20px" data-en="All modern LLMs are variants of the transformer. The key difference is the type of attention.">Все современные LLM — варианты трансформера. Главное отличие — тип attention.</p>
 
   <div class="arch-grid">
     <div class="arch-card arch-enc">
       <div class="arch-name">Encoder-only</div>
       <div class="arch-model">BERT, RoBERTa</div>
-      <div class="arch-badge" style="background:var(--blue-dim)">двунаправленный</div>
-      <div class="arch-tasks">
+      <div class="arch-badge" style="background:var(--blue-dim)" data-en="bidirectional">двунаправленный</div>
+      <div class="arch-tasks" data-en="✓ Classification<br>✓ NER / POS-tagging<br>✓ Semantic search<br>✗ Text generation">
         ✓ Классификация<br>
         ✓ NER / POS-теггинг<br>
         ✓ Семантический поиск<br>
@@ -202,8 +202,8 @@ input[type=range]{flex:1;accent-color:var(--purple)}
     <div class="arch-card arch-dec">
       <div class="arch-name">Decoder-only</div>
       <div class="arch-model">GPT-4, Llama, Mistral</div>
-      <div class="arch-badge" style="background:var(--purple-dim)">каузальный →</div>
-      <div class="arch-tasks">
+      <div class="arch-badge" style="background:var(--purple-dim)" data-en="causal →">каузальный →</div>
+      <div class="arch-tasks" data-en="✓ Text generation<br>✓ Chatbots, assistants<br>✓ Code, reasoning<br>✓ Few-shot learning">
         ✓ Генерация текста<br>
         ✓ Чат-боты, ассистенты<br>
         ✓ Код, reasoning<br>
@@ -213,8 +213,8 @@ input[type=range]{flex:1;accent-color:var(--purple)}
     <div class="arch-card arch-s2s">
       <div class="arch-name">Encoder-Decoder</div>
       <div class="arch-model">T5, BART, mT5</div>
-      <div class="arch-badge" style="background:var(--teal-dim)">полный + кросс</div>
-      <div class="arch-tasks">
+      <div class="arch-badge" style="background:var(--teal-dim)" data-en="full + cross">полный + кросс</div>
+      <div class="arch-tasks" data-en="✓ Machine translation<br>✓ Summarization<br>✓ Q&amp;A with context<br>✓ Seq2seq tasks">
         ✓ Машинный перевод<br>
         ✓ Суммаризация<br>
         ✓ Q&amp;A с контекстом<br>
@@ -223,28 +223,29 @@ input[type=range]{flex:1;accent-color:var(--purple)}
     </div>
   </div>
 
-  <div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:14px;background:var(--surface2);border-radius:8px;line-height:2;text-align:center">
+  <div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:14px;background:var(--surface2);border-radius:8px;line-height:2;text-align:center"
+       data-en="<span style='color:var(--text)'>Trend 2023+:</span> decoders have overtaken the rest — GPT-4, Claude, Llama, Gemini&lt;br&gt;<span style='color:var(--purple)'>Why?</span> Pre-training = next-token prediction → learns from any text without labels">
     <span style="color:var(--text)">Тренд 2023+:</span> декодеры вытеснили остальных — GPT-4, Claude, Llama, Gemini<br>
     <span style="color:var(--purple)">Почему?</span> Предобучение = next-token prediction → учится на любом тексте без разметки
   </div>
-  <div class="note"><strong>Ключевое отличие:</strong> энкодер видит весь контекст сразу (полезно для понимания), декодер — только прошлое (необходимо для генерации: иначе модель просто "подсматривает").</div>
+  <div class="note" data-en='<strong>Key difference:</strong> the encoder sees the full context at once (useful for understanding); the decoder only sees the past (required for generation — otherwise the model simply "peeks").'><strong>Ключевое отличие:</strong> энкодер видит весь контекст сразу (полезно для понимания), декодер — только прошлое (необходимо для генерации: иначе модель просто "подсматривает").</div>
 </div>
 
 <!-- STEP 1 -->
 <div class="panel" id="p1">
-  <div class="sec">шаг 2 / 7</div>
-  <h2>Каузальное маскирование</h2>
-  <p style="color:var(--muted);margin-bottom:16px">Декодер запрещает каждому токену "видеть" будущее через маску в матрице внимания.</p>
+  <div class="sec" data-en="step 2 / 7">шаг 2 / 7</div>
+  <h2 data-en="Causal masking">Каузальное маскирование</h2>
+  <p style="color:var(--muted);margin-bottom:16px" data-en='The decoder prevents each token from "seeing" the future via a mask in the attention matrix.'>Декодер запрещает каждому токену "видеть" будущее через маску в матрице внимания.</p>
 
-  <button class="toggle-btn" onclick="toggleMask()">⇄ Переключить: Энкодер ↔ Декодер</button>
+  <button class="toggle-btn" onclick="toggleMask()" data-en="⇄ Toggle: Encoder ↔ Decoder">⇄ Переключить: Энкодер ↔ Декодер</button>
   <div style="font-family:var(--mono);font-size:12px;color:var(--purple);text-align:center;margin-bottom:14px" id="maskModeLabel">Режим: Декодер (каузальный)</div>
 
   <div style="display:flex;gap:16px;justify-content:center;margin-bottom:12px">
     <span style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)">
-      <span style="width:16px;height:16px;background:var(--purple-dim);border:0.5px solid var(--purple);border-radius:3px;display:inline-block"></span>разрешено
+      <span style="width:16px;height:16px;background:var(--purple-dim);border:0.5px solid var(--purple);border-radius:3px;display:inline-block"></span><span data-en="allowed">разрешено</span>
     </span>
     <span style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)">
-      <span style="width:16px;height:16px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:3px;display:inline-block;opacity:0.4"></span>заблокировано
+      <span style="width:16px;height:16px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:3px;display:inline-block;opacity:0.4"></span><span data-en="blocked">заблокировано</span>
     </span>
   </div>
 
@@ -255,14 +256,14 @@ input[type=range]{flex:1;accent-color:var(--purple)}
   <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin-top:12px" id="maskNote">
     "sat" (поз. 2) видит только "The", "cat", "sat" — не "on" и не "mat"
   </div>
-  <div class="note"><strong>Реализация:</strong> заблокированным позициям добавляется −∞ к логитам перед softmax → вес = 0. Весь декодер обучается параллельно: будущее скрыто маской, а не последовательностью шагов.</div>
+  <div class="note" data-en="<strong>Implementation:</strong> blocked positions get −∞ added to logits before softmax → weight = 0. The whole decoder trains in parallel: the future is hidden by the mask, not by sequential steps."><strong>Реализация:</strong> заблокированным позициям добавляется −∞ к логитам перед softmax → вес = 0. Весь декодер обучается параллельно: будущее скрыто маской, а не последовательностью шагов.</div>
 </div>
 
 <!-- STEP 2 -->
 <div class="panel" id="p2">
-  <div class="sec">шаг 3 / 7</div>
-  <h2>Авторегрессия и сэмплинг</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Модель генерирует по одному токену. Параметры сэмплинга меняют форму распределения.</p>
+  <div class="sec" data-en="step 3 / 7">шаг 3 / 7</div>
+  <h2 data-en="Autoregression and sampling">Авторегрессия и сэмплинг</h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="The model generates one token at a time. Sampling parameters reshape the probability distribution.">Модель генерирует по одному токену. Параметры сэмплинга меняют форму распределения.</p>
 
   <div class="gen-output" id="genOutput">The cat sat on the <span id="genLatest" style="font-family:var(--mono)">___</span></div>
 
@@ -286,25 +287,26 @@ input[type=range]{flex:1;accent-color:var(--purple)}
   <div id="tokenBars" style="margin:16px 0"></div>
 
   <div style="text-align:center">
-    <button class="toggle-btn" onclick="sampleToken()" style="margin:0">⚂ Сэмплировать токен</button>
+    <button class="toggle-btn" onclick="sampleToken()" style="margin:0" data-en="⚂ Sample token">⚂ Сэмплировать токен</button>
   </div>
-  <div class="note"><strong>Параметры:</strong> temperature &lt; 1 → острее (детерминированнее); &gt; 1 → случайнее. top-k оставляет k лучших. top-p (nucleus) оставляет минимальный набор с суммарной вероятностью ≥ p. Оба применяются вместе.</div>
+  <div class="note" data-en="<strong>Parameters:</strong> temperature &lt; 1 → sharper (more deterministic); &gt; 1 → more random. top-k keeps the k best tokens. top-p (nucleus) keeps the minimum set with cumulative probability ≥ p. Both are applied together."><strong>Параметры:</strong> temperature &lt; 1 → острее (детерминированнее); &gt; 1 → случайнее. top-k оставляет k лучших. top-p (nucleus) оставляет минимальный набор с суммарной вероятностью ≥ p. Оба применяются вместе.</div>
 </div>
 
 <!-- STEP 3 -->
 <div class="panel" id="p3">
-  <div class="sec">шаг 4 / 7</div>
-  <h2>KV-кэш</h2>
-  <p style="color:var(--muted);margin-bottom:14px">При инференсе K и V для прошлых токенов не меняются — их достаточно закэшировать один раз.</p>
+  <div class="sec" data-en="step 4 / 7">шаг 4 / 7</div>
+  <h2 data-en="KV-cache">KV-кэш</h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="During inference K and V for past tokens never change — they only need to be computed once and cached.">При инференсе K и V для прошлых токенов не меняются — их достаточно закэшировать один раз.</p>
 
-  <div style="font-family:var(--mono);font-size:12px;text-align:center;color:var(--muted);margin-bottom:6px">
+  <div style="font-family:var(--mono);font-size:12px;text-align:center;color:var(--muted);margin-bottom:6px"
+       data-en='Generating tokens: <span style="color:var(--text)">"The" → "cat" → "sat" → "on" → "mat"</span>'>
     Генерируем токены: <span style="color:var(--text)">"The" → "cat" → "sat" → "on" → "mat"</span>
   </div>
 
   <div class="ctrl-row">
-    <button class="ctrl-btn" id="kvPrevBtn" onclick="kvMove(-1)" disabled>← назад</button>
+    <button class="ctrl-btn" id="kvPrevBtn" onclick="kvMove(-1)" disabled data-en="← back">← назад</button>
     <span class="ctrl-info" id="kvInfo">шаг 1 / 5</span>
-    <button class="ctrl-btn" id="kvNextBtn" onclick="kvMove(1)">вперёд →</button>
+    <button class="ctrl-btn" id="kvNextBtn" onclick="kvMove(1)" data-en="forward →">вперёд →</button>
   </div>
 
   <div style="overflow-x:auto">
@@ -312,70 +314,72 @@ input[type=range]{flex:1;accent-color:var(--purple)}
   </div>
 
   <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:10px 0;font-family:var(--mono);font-size:11px">
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--teal-dim);border:0.5px solid var(--teal);border-radius:3px"></span><span style="color:var(--teal)">кэш — не вычислять</span></span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--amber-dim);border:0.5px solid var(--amber);border-radius:3px"></span><span style="color:var(--amber)">вычислить сейчас</span></span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:3px;opacity:0.4"></span><span style="color:var(--muted)">ещё не нужен</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--teal-dim);border:0.5px solid var(--teal);border-radius:3px"></span><span style="color:var(--teal)" data-en="cache — skip computation">кэш — не вычислять</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--amber-dim);border:0.5px solid var(--amber);border-radius:3px"></span><span style="color:var(--amber)" data-en="compute now">вычислить сейчас</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:3px;opacity:0.4"></span><span style="color:var(--muted)" data-en="not needed yet">ещё не нужен</span></span>
   </div>
 
   <div style="font-family:var(--mono);font-size:12px;text-align:center;padding:10px 14px;background:var(--surface2);border-radius:8px" id="kvStats"></div>
-  <div class="note note-teal"><strong>Выигрыш:</strong> без кэша генерация N токенов → O(N²) вычислений. С кэшем → O(N). Для контекстов 128k+ — разница в скорости в десятки раз. Цена: память GPU для хранения всех K,V.</div>
+  <div class="note note-teal" data-en="<strong>Gain:</strong> without cache, generating N tokens → O(N²) computations. With cache → O(N). For 128k+ contexts — speed difference is 10-100×. Cost: GPU memory to store all K,V."><strong>Выигрыш:</strong> без кэша генерация N токенов → O(N²) вычислений. С кэшем → O(N). Для контекстов 128k+ — разница в скорости в десятки раз. Цена: память GPU для хранения всех K,V.</div>
 </div>
 
 <!-- STEP 4 -->
 <div class="panel" id="p4">
-  <div class="sec">шаг 5 / 7</div>
-  <h2>Архитектурные блоки — выбери вариант</h2>
-  <p style="color:var(--muted);margin-bottom:18px">Каждый компонент трансформера можно реализовать несколькими способами. Нажми на вариант — увидишь формулу, модели и плюсы/минусы.</p>
+  <div class="sec" data-en="step 5 / 7">шаг 5 / 7</div>
+  <h2 data-en="Architectural blocks — choose a variant">Архитектурные блоки — выбери вариант</h2>
+  <p style="color:var(--muted);margin-bottom:18px" data-en="Each transformer component can be implemented several ways. Click a variant to see the formula, models, and trade-offs.">Каждый компонент трансформера можно реализовать несколькими способами. Нажми на вариант — увидишь формулу, модели и плюсы/минусы.</p>
   <div id="archSelector"></div>
 </div>
 
 <!-- STEP 5 -->
 <div class="panel" id="p5">
-  <div class="sec">шаг 6 / 7</div>
-  <h2>Предобучение и масштабирование</h2>
-  <p style="color:var(--muted);margin-bottom:18px">LLM обучаются предсказывать следующий токен на триллионах токенов текста.</p>
+  <div class="sec" data-en="step 6 / 7">шаг 6 / 7</div>
+  <h2 data-en="Pre-training and scaling">Предобучение и масштабирование</h2>
+  <p style="color:var(--muted);margin-bottom:18px" data-en="LLMs are trained to predict the next token on trillions of tokens of text.">LLM обучаются предсказывать следующий токен на триллионах токенов текста.</p>
 
   <div style="background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:20px;text-align:center">
-    <div class="sec" style="margin-bottom:8px">Цель обучения: cross-entropy по следующему токену</div>
+    <div class="sec" style="margin-bottom:8px" data-en="Training objective: cross-entropy over next token">Цель обучения: cross-entropy по следующему токену</div>
     <div style="font-family:var(--mono);font-size:14px;color:var(--text);padding:8px 0">
       L = −(1/T) · Σ log P(x<sub>t</sub> | x<sub>1</sub>, …, x<sub>t−1</sub>)
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-top:4px">Обучается на любом тексте без разметки — self-supervised learning.</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px" data-en="Trained on any text without labels — self-supervised learning.">Обучается на любом тексте без разметки — self-supervised learning.</div>
   </div>
 
-  <div class="sec">Масштаб современных моделей (логарифмическая шкала параметров)</div>
+  <div class="sec" data-en="Scale of modern models (logarithmic parameter scale)">Масштаб современных моделей (логарифмическая шкала параметров)</div>
   <div id="scaleViz"></div>
 
   <div style="margin-top:20px;padding:14px 18px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
-    <div class="sec">Законы масштабирования — Chinchilla (2022)</div>
-    <div style="font-size:13px;color:var(--muted);line-height:2">
+    <div class="sec" data-en="Scaling laws — Chinchilla (2022)">Законы масштабирования — Chinchilla (2022)</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2"
+         data-en='Optimum: <span style="color:var(--amber);font-family:var(--mono)">~20 tokens per parameter</span>&lt;br&gt;GPT-3 (175B): needs ~3.5T tokens → trained on only 300B <span style="color:var(--coral)">(undertrained)</span>&lt;br&gt;Llama 3 8B: 8B × 20 = 160B "optimum", but trained on <span style="color:var(--teal)">15T</span> — deliberately overtrained for efficient inference&lt;br&gt;<span style="color:var(--teal)">Conclusion: small models with huge datasets often beat large, poorly-trained ones.</span>'>
       Оптимум: <span style="color:var(--amber);font-family:var(--mono)">~20 токенов на параметр</span><br>
       GPT-3 (175B): нужно ~3.5T токенов → обучали только 300B <span style="color:var(--coral)">(недообучение)</span><br>
       Llama 3 8B: 8B × 20 = 160B "оптимум", но обучали <span style="color:var(--teal)">15T</span> — намеренно переобучают для эффективного инференса<br>
       <span style="color:var(--teal)">Вывод: малые модели с огромным датасетом часто бьют большие, плохо обученные.</span>
     </div>
   </div>
-  <div class="note note-amber"><strong>Стоимость:</strong> предобучение Llama 3 70B ≈ 6.4M GPU-часов на H100. При $2/GPU-час ≈ $12M только на compute. Поэтому выбор архитектуры и датасета критичен.</div>
+  <div class="note note-amber" data-en="<strong>Cost:</strong> pre-training Llama 3 70B ≈ 6.4M GPU-hours on H100. At $2/GPU-hour ≈ $12M in compute alone. This is why architecture and dataset choices are critical."><strong>Стоимость:</strong> предобучение Llama 3 70B ≈ 6.4M GPU-часов на H100. При $2/GPU-час ≈ $12M только на compute. Поэтому выбор архитектуры и датасета критичен.</div>
 </div>
 
 <!-- STEP 6 -->
 <div class="panel" id="p6">
-  <div class="sec">шаг 7 / 7</div>
-  <h2>Выравнивание: RLHF и DPO</h2>
-  <p style="color:var(--muted);margin-bottom:18px">Предобученный LLM умеет продолжать текст, но не "помогать". Выравнивание меняет поведение модели.</p>
+  <div class="sec" data-en="step 7 / 7">шаг 7 / 7</div>
+  <h2 data-en="Alignment: RLHF and DPO">Выравнивание: RLHF и DPO</h2>
+  <p style="color:var(--muted);margin-bottom:18px" data-en='A pre-trained LLM knows how to continue text, but not how to "help". Alignment changes the model&#39;s behavior.'>Предобученный LLM умеет продолжать текст, но не "помогать". Выравнивание меняет поведение модели.</p>
 
-  <div class="sec">RLHF-пайплайн — нажмите на фазу для подробностей</div>
+  <div class="sec" data-en="RLHF pipeline — click a phase for details">RLHF-пайплайн — нажмите на фазу для подробностей</div>
   <div id="rlhfFlow"></div>
 
   <div class="ctrl-row" style="margin-top:4px">
-    <button class="ctrl-btn" id="rlhfPrevBtn" onclick="rlhfMove(-1)" disabled>← назад</button>
-    <span class="ctrl-info" id="rlhfInfo">фаза 1 / 4</span>
-    <button class="ctrl-btn" id="rlhfNextBtn" onclick="rlhfMove(1)">вперёд →</button>
+    <button class="ctrl-btn" id="rlhfPrevBtn" onclick="rlhfMove(-1)" disabled data-en="← back">← назад</button>
+    <span class="ctrl-info" id="rlhfInfo" data-en="phase 1 / 4">фаза 1 / 4</span>
+    <button class="ctrl-btn" id="rlhfNextBtn" onclick="rlhfMove(1)" data-en="forward →">вперёд →</button>
   </div>
 
   <div style="margin-top:20px;padding:14px 18px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
-    <div class="sec">Альтернатива: DPO (Direct Preference Optimization)</div>
-    <div style="font-size:13px;color:var(--muted);line-height:1.9">
+    <div class="sec" data-en="Alternative: DPO (Direct Preference Optimization)">Альтернатива: DPO (Direct Preference Optimization)</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.9"
+         data-en='Removes the separate reward model and RL. Optimizes the model directly on preference pairs (good / bad answer).&lt;br&gt;<span style="color:var(--teal)">Simpler, more stable, often on par with RLHF.</span> Used in Llama 2/3, Zephyr, Mistral Instruct.'>
       Убирает отдельную reward-модель и RL. Оптимизирует модель напрямую по парам предпочтений (хороший / плохой ответ).<br>
       <span style="color:var(--teal)">Проще, стабильнее, часто сравнимо с RLHF.</span>
       Используется в Llama 2/3, Zephyr, Mistral Instruct.
@@ -383,8 +387,9 @@ input[type=range]{flex:1;accent-color:var(--purple)}
   </div>
 
   <div style="margin-top:28px;padding-top:20px;border-top:0.5px solid var(--border2)">
-    <div class="sec">Полная цепочка современного LLM</div>
-    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:2.4">
+    <div class="sec" data-en="Full modern LLM pipeline">Полная цепочка современного LLM</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:2.4"
+         data-en='<span style="color:var(--muted)">web text</span> → <span style="color:var(--blue)">tokenization</span> → <span style="color:var(--teal)">pre-training</span> (CLM, T tokens) → <span style="color:var(--amber)">SFT</span> (instructions) → <span style="color:var(--coral)">RM</span> + <span style="color:var(--purple)">PPO/DPO</span> → <span style="color:#fff;font-weight:700">assistant</span>&lt;br&gt;<span style="color:var(--muted)">Architecture:</span> <span style="color:var(--text)">Decoder-only</span> + <span style="color:var(--teal)">RoPE</span> + <span style="color:var(--teal)">RMSNorm</span> + <span style="color:var(--teal)">SwiGLU</span> + <span style="color:var(--teal)">GQA</span>'>
       <span style="color:var(--muted)">веб-текст</span>
       → <span style="color:var(--blue)">токенизация</span>
       → <span style="color:var(--teal)">предобучение</span> (CLM, T токенов)
@@ -403,9 +408,9 @@ input[type=range]{flex:1;accent-color:var(--purple)}
 
 <!-- nav -->
 <div class="nav-row">
-  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← назад</button>
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled data-en="← back">← назад</button>
   <span class="counter" id="counter">1 / 7</span>
-  <button class="nav-btn" id="nextBtn" onclick="go(1)">далее →</button>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)" data-en="next →">далее →</button>
 </div>
 </div><!-- /card -->
 
@@ -414,29 +419,34 @@ input[type=range]{flex:1;accent-color:var(--purple)}
 <script>
 // ── Navigation ──────────────────────────────────────────────────────
 const STEPS = [
-  {id:'p0', label:'01 архитектуры'},
-  {id:'p1', label:'02 маскирование'},
-  {id:'p2', label:'03 сэмплинг'},
-  {id:'p3', label:'04 KV-кэш'},
-  {id:'p4', label:'05 арх. блоки'},
-  {id:'p5', label:'06 масштаб'},
-  {id:'p6', label:'07 RLHF'},
+  {id:'p0', label:'01 архитектуры',  en:'01 architectures'},
+  {id:'p1', label:'02 маскирование', en:'02 masking'},
+  {id:'p2', label:'03 сэмплинг',     en:'03 sampling'},
+  {id:'p3', label:'04 KV-кэш',       en:'04 KV-cache'},
+  {id:'p4', label:'05 арх. блоки',   en:'05 arch. blocks'},
+  {id:'p5', label:'06 масштаб',      en:'06 scaling'},
+  {id:'p6', label:'07 RLHF',         en:'07 RLHF'},
 ];
 let cur = 0;
 
 const nav = document.getElementById('stepNav');
-STEPS.forEach((s, i) => {
-  const b = document.createElement('button');
-  b.className = 'step-btn' + (i === 0 ? ' active' : '');
-  b.textContent = s.label;
-  b.onclick = () => jump(i);
-  nav.appendChild(b);
-});
+function buildNav(){
+  nav.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.className = 'step-btn' + (i === cur ? ' active' : '');
+    b.innerHTML = window.T ? window.T(s.label, s.en) : s.label;
+    b.dataset.en = s.en;
+    b.onclick = () => jump(i);
+    nav.appendChild(b);
+  });
+}
+buildNav();
 
 function render() {
   STEPS.forEach((s, i) => {
     document.getElementById(s.id).classList.toggle('active', i === cur);
-    nav.children[i].classList.toggle('active', i === cur);
+    if(nav.children[i]) nav.children[i].classList.toggle('active', i === cur);
   });
   document.getElementById('counter').textContent = (cur + 1) + ' / ' + STEPS.length;
   document.getElementById('prevBtn').disabled = cur === 0;
@@ -450,6 +460,7 @@ function render() {
 }
 function go(d) { cur = Math.max(0, Math.min(STEPS.length - 1, cur + d)); render(); }
 function jump(i) { cur = i; render(); }
+window.onLangChange = function(){ buildNav(); render(); if(window.applyLang) applyLang(); };
 
 // ── Causal Mask ──────────────────────────────────────────────────────
 const MASK_TOKENS = ['The', 'cat', 'sat', 'on', 'mat'];
@@ -457,8 +468,9 @@ let maskCausal = true;
 
 function toggleMask() {
   maskCausal = !maskCausal;
-  document.getElementById('maskModeLabel').textContent =
-    'Режим: ' + (maskCausal ? 'Декодер (каузальный)' : 'Энкодер (двунаправленный)');
+  document.getElementById('maskModeLabel').textContent = window.T
+    ? window.T('Режим: ','Mode: ') + (maskCausal ? window.T('Декодер (каузальный)','Decoder (causal)') : window.T('Энкодер (двунаправленный)','Encoder (bidirectional)'))
+    : 'Режим: ' + (maskCausal ? 'Декодер (каузальный)' : 'Энкодер (двунаправленный)');
   renderMask();
 }
 
@@ -486,9 +498,12 @@ function renderMask() {
   });
 
   document.getElementById('maskContainer').innerHTML = html;
+  document.getElementById('maskModeLabel').textContent = window.T
+    ? window.T('Режим: ', 'Mode: ') + (maskCausal ? window.T('Декодер (каузальный)', 'Decoder (causal)') : window.T('Энкодер (двунаправленный)', 'Encoder (bidirectional)'))
+    : 'Режим: ' + (maskCausal ? 'Декодер (каузальный)' : 'Энкодер (двунаправленный)');
   document.getElementById('maskNote').textContent = maskCausal
-    ? '"sat" (поз. 2) видит "The", "cat", "sat" — не "on" и не "mat"'
-    : '"sat" видит все токены одновременно — полный двунаправленный контекст';
+    ? (window.T ? window.T('"sat" (поз. 2) видит "The", "cat", "sat" — не "on" и не "mat"','"sat" (pos. 2) sees "The", "cat", "sat" — not "on" or "mat"') : '"sat" (поз. 2) видит "The", "cat", "sat" — не "on" и не "mat"')
+    : (window.T ? window.T('"sat" видит все токены одновременно — полный двунаправленный контекст','"sat" sees all tokens at once — full bidirectional context') : '"sat" видит все токены одновременно — полный двунаправленный контекст');
 }
 
 // ── Sampling ─────────────────────────────────────────────────────────
@@ -506,24 +521,30 @@ function softmax(arr) {
 }
 
 function updateSampling() {
-  const T = parseFloat(document.getElementById('tempSlider').value);
+  const temp = parseFloat(document.getElementById('tempSlider').value);
   const K = parseInt(document.getElementById('topkSlider').value);
   const P = parseFloat(document.getElementById('toppSlider').value);
 
-  document.getElementById('tempVal').textContent = T.toFixed(1);
-  document.getElementById('topkVal').textContent = K >= 8 ? 'все' : K;
+  document.getElementById('tempVal').textContent = temp.toFixed(1);
+  document.getElementById('topkVal').textContent = K >= 8 ? (window.T ? window.T('все','all') : 'все') : K;
   document.getElementById('toppVal').textContent = P.toFixed(2);
 
-  const notes = [
+  const notes = window.T && LANG==='en' ? [
+    [0.3, 'very sharp — almost greedy'],
+    [0.7, 'sharp — less randomness'],
+    [1.1, 'balanced distribution'],
+    [1.5, 'soft — more randomness'],
+    [Infinity, 'very random — almost uniform'],
+  ] : [
     [0.3, 'очень острое — почти greedy'],
     [0.7, 'острое — меньше случайности'],
     [1.1, 'сбалансированное распределение'],
     [1.5, 'мягкое — больше случайности'],
     [Infinity, 'очень случайное — почти uniform'],
   ];
-  document.getElementById('tempNote').textContent = '→ ' + notes.find(([thr]) => T <= thr)[1];
+  document.getElementById('tempNote').textContent = '→ ' + notes.find(([thr]) => temp <= thr)[1];
 
-  let probs = softmax(S_LOGITS.map(l => l / T));
+  let probs = softmax(S_LOGITS.map(l => l / temp));
   const sorted = [...probs.keys()].sort((a, b) => probs[b] - probs[a]);
 
   // top-k
@@ -582,37 +603,38 @@ function kvMove(d) {
 }
 
 function renderKV() {
-  document.getElementById('kvInfo').textContent = `шаг ${kvCur + 1} / ${KV_WORDS.length}`;
+  document.getElementById('kvInfo').textContent = T ? `${T('шаг','step')} ${kvCur + 1} / ${KV_WORDS.length}` : `шаг ${kvCur + 1} / ${KV_WORDS.length}`;
   document.getElementById('kvPrevBtn').disabled = kvCur === 0;
   document.getElementById('kvNextBtn').disabled = kvCur === KV_WORDS.length - 1;
 
   const tbl = document.getElementById('kvTable');
-  tbl.innerHTML = '<tr><th>токен</th><th>Q</th><th>K</th><th>V</th><th>Attention output</th></tr>';
+  tbl.innerHTML = `<tr><th>${T?T('токен','token'):'токен'}</th><th>Q</th><th>K</th><th>V</th><th>Attention output</th></tr>`;
 
   KV_WORDS.forEach((w, i) => {
     const past = i < kvCur, cur_ = i === kvCur, future = i > kvCur;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="color:var(--text);font-family:var(--mono)">${w}</td>
-      <td class="${cur_ ? 'kv-new' : 'kv-future'}">${cur_ ? 'вычислить' : '—'}</td>
-      <td class="${past ? 'kv-cached' : cur_ ? 'kv-new' : 'kv-future'}">${past ? '✓ кэш' : cur_ ? 'вычислить' : '—'}</td>
-      <td class="${past ? 'kv-cached' : cur_ ? 'kv-new' : 'kv-future'}">${past ? '✓ кэш' : cur_ ? 'вычислить' : '—'}</td>
+      <td class="${cur_ ? 'kv-new' : 'kv-future'}">${cur_ ? (T?T('вычислить','compute'):'вычислить') : '—'}</td>
+      <td class="${past ? 'kv-cached' : cur_ ? 'kv-new' : 'kv-future'}">${past ? (T?T('✓ кэш','✓ cache'):'✓ кэш') : cur_ ? (T?T('вычислить','compute'):'вычислить') : '—'}</td>
+      <td class="${past ? 'kv-cached' : cur_ ? 'kv-new' : 'kv-future'}">${past ? (T?T('✓ кэш','✓ cache'):'✓ кэш') : cur_ ? (T?T('вычислить','compute'):'вычислить') : '—'}</td>
       <td class="${cur_ ? 'kv-new' : 'kv-future'}">${cur_ ? '= Σ wᵢ·Vᵢ' : '—'}</td>`;
     tbl.appendChild(tr);
   });
 
   const cached = kvCur;
   const total = (kvCur + 1) * (kvCur + 1);
+  const L = T && LANG === 'en';
   document.getElementById('kvStats').innerHTML =
-    `<span style="color:var(--teal)">✓ кэш K,V: ${cached} токен(ов)</span>` +
-    `&nbsp;&nbsp;|&nbsp;&nbsp;<span style="color:var(--amber)">новых вычислений: 1</span>` +
-    `&nbsp;&nbsp;|&nbsp;&nbsp;<span style="color:var(--muted)">без кэша потребовалось бы: ~${total}</span>`;
+    `<span style="color:var(--teal)">✓ ${L ? `K,V cache: ${cached} token(s)` : `кэш K,V: ${cached} токен(ов)`}</span>` +
+    `&nbsp;&nbsp;|&nbsp;&nbsp;<span style="color:var(--amber)">${L ? 'new computations: 1' : 'новых вычислений: 1'}</span>` +
+    `&nbsp;&nbsp;|&nbsp;&nbsp;<span style="color:var(--muted)">${L ? `without cache: ~${total}` : `без кэша потребовалось бы: ~${total}`}</span>`;
 }
 
 // ── ARCH SELECTOR ────────────────────────────────────────────────────
 const ARCH_DATA = {
   pe: {
-    label: '1. Позиционное кодирование',
+    label: '1. Позиционное кодирование', labelEn: '1. Positional encoding',
     sel: 'rope',
     opts: {
       sinusoidal: { label:'Sinusoidal', era:'original 2017',
@@ -620,26 +642,35 @@ const ARCH_DATA = {
         formula:'PE(pos,2i) = sin(pos / 10000^{2i/d})',
         models:'BERT · GPT-1/2 · original Transformer',
         insight:'Абсолютные позиции, фиксированные синусоиды. Не обобщается за пределы обучающей длины.',
+        insightEn:'Absolute positions, fixed sinusoids. Does not generalize beyond training length.',
         pros:['Нет обучаемых параметров','Детерминировано'],
-        cons:['Не экстраполирует','Только абсолютная позиция'] },
+        prosEn:['No learnable parameters','Deterministic'],
+        cons:['Не экстраполирует','Только абсолютная позиция'],
+        consEn:['Does not extrapolate','Absolute position only'] },
       rope: { label:'RoPE', era:'Su et al. 2021',
         clr:'var(--teal)', bg:'var(--teal-dim)', bd:'var(--teal)',
         formula:"q' = q·e^{imθ}   k' = k·e^{imθ}\nθᵢ = 10000^{-2i/d}",
         models:'Llama 1/2/3 · Mistral · Gemma · Qwen · GPT-NeoX',
         insight:'Вращает пары измерений Q и K. Относительная позиция между токенами i и j кодируется прямо в dot-product Q·K — без изменения V. YaRN/LongRoPE расширяют до 128k+.',
+        insightEn:'Rotates pairs of Q and K dimensions. Relative position between tokens i and j is encoded directly in the Q·K dot-product — without modifying V. YaRN/LongRoPE extend to 128k+.',
         pros:['Относительная позиция бесплатно','Хорошо экстраполирует','YaRN для длинных контекстов'],
-        cons:['Нельзя применить к V-векторам'] },
+        prosEn:['Relative position for free','Good extrapolation','YaRN for long contexts'],
+        cons:['Нельзя применить к V-векторам'],
+        consEn:['Cannot be applied to V-vectors'] },
       alibi: { label:'ALiBi', era:'Press et al. 2021',
         clr:'var(--amber)', bg:'var(--amber-dim)', bd:'var(--amber)',
         formula:'score(i,j) = q·k^T − m · |i − j|',
         models:'BLOOM · MPT-7B/30B',
         insight:'PE вообще нет. Вычитает линейный штраф за расстояние из attention-оценок до softmax. Разные наклоны m для каждой головы.',
+        insightEn:'No PE at all. Subtracts a linear distance penalty from attention scores before softmax. Different slopes m per head.',
         pros:['Хорошо экстраполирует','Нет лишних параметров'],
-        cons:['Менее популярен чем RoPE','Хуже на очень длинных seq'] },
+        prosEn:['Good extrapolation','No extra parameters'],
+        cons:['Менее популярен чем RoPE','Хуже на очень длинных seq'],
+        consEn:['Less popular than RoPE','Worse on very long sequences'] },
     }
   },
   norm: {
-    label: '2. Нормализация',
+    label: '2. Нормализация', labelEn: '2. Normalization',
     sel: 'rmsnorm',
     opts: {
       ln_post: { label:'LayerNorm post', era:'original 2017',
@@ -647,26 +678,35 @@ const ARCH_DATA = {
         formula:'y = (x − μ) / σ · γ + β\nпосле sublayer',
         models:'original Transformer · GPT-1',
         insight:'LN после attention и FFN. Нестабильно при глубоких сетях — градиенты взрываются.',
+        insightEn:'LN after attention and FFN. Unstable for deep networks — gradients explode.',
         pros:['Исторически первый вариант'],
-        cons:['Нестабильно при большой глубине','Нужна warm-up стратегия'] },
+        prosEn:['Historically first'],
+        cons:['Нестабильно при большой глубине','Нужна warm-up стратегия'],
+        consEn:['Unstable at large depth','Needs warm-up strategy'] },
       ln_pre: { label:'LayerNorm pre', era:'GPT-2 (2019)',
         clr:'var(--blue)', bg:'var(--blue-dim)', bd:'var(--blue)',
         formula:'out = x + sublayer(LayerNorm(x))\nдо sublayer',
         models:'GPT-2 · GPT-3 · BERT (некоторые варианты)',
         insight:'LN до sublayer. Значительно стабильнее при обучении. Стал стандартом до появления RMSNorm.',
+        insightEn:'LN before sublayer. Significantly more stable for training. Became the standard before RMSNorm.',
         pros:['Стабильное обучение','Не нужна warm-up стратегия'],
-        cons:['Вычисляет и μ и σ — избыточно'] },
+        prosEn:['Stable training','No warm-up needed'],
+        cons:['Вычисляет и μ и σ — избыточно'],
+        consEn:['Computes both μ and σ — redundant'] },
       rmsnorm: { label:'RMSNorm pre', era:'Zhang & Sennrich 2019',
         clr:'var(--teal)', bg:'var(--teal-dim)', bd:'var(--teal)',
         formula:'RMS(x) = √(1/d · Σxᵢ²)\ny = x / RMS(x) · γ',
         models:'Llama 1/2/3 · Mistral · Gemma · Qwen · PaLM',
         insight:'Убирает вычитание среднего из LayerNorm. Нормировка только по RMS. На 7–15% быстрее при одинаковом качестве. Нет параметра β.',
+        insightEn:'Removes mean subtraction from LayerNorm. Normalizes by RMS only. 7–15% faster at equal quality. No β parameter.',
         pros:['Быстрее LayerNorm','Стабильное обучение','Меньше параметров'],
-        cons:['Без принципиального выигрыша в качестве'] },
+        prosEn:['Faster than LayerNorm','Stable training','Fewer parameters'],
+        cons:['Без принципиального выигрыша в качестве'],
+        consEn:['No principled quality gain'] },
     }
   },
   ffn: {
-    label: '3. Активация FFN',
+    label: '3. Активация FFN', labelEn: '3. FFN activation',
     sel: 'swiglu',
     canvas: true,
     opts: {
@@ -675,71 +715,95 @@ const ARCH_DATA = {
         formula:'f(x) = max(0, x)\nFFN: d → 4d → ReLU → d',
         models:'original Transformer',
         insight:'Простейшая нелинейность. Быстро, но "мёртвые нейроны" — значительная часть всегда = 0.',
+        insightEn:'Simplest nonlinearity. Fast, but "dead neurons" — a large fraction always = 0.',
         pros:['Максимально быстрая','Простая реализация'],
+        prosEn:['Maximum speed','Simple implementation'],
         cons:['"Мёртвые нейроны"','Хуже GELU/SwiGLU на NLP'],
+        consEn:['Dead neurons','Worse than GELU/SwiGLU on NLP'],
         fn: x => Math.max(0, x) },
       gelu: { label:'GELU', era:'Hendrycks 2016',
         clr:'var(--blue)', bg:'var(--blue-dim)', bd:'var(--blue)',
         formula:'f(x) = x · Φ(x) ≈ x · σ(1.702x)\nFFN: d → 4d → GELU → d',
         models:'BERT · GPT-2 · GPT-3 · RoBERTa',
         insight:'Плавная ReLU: взвешивает x по Гауссу. Почти нет мёртвых нейронов. Де-факто стандарт до SwiGLU.',
+        insightEn:'Smooth ReLU: weights x by a Gaussian. Almost no dead neurons. De-facto standard before SwiGLU.',
         pros:['Плавная и дифференцируема везде','Лучше ReLU на NLP'],
+        prosEn:['Smooth and differentiable everywhere','Better than ReLU on NLP'],
         cons:['Чуть медленнее ReLU','Уступает SwiGLU'],
+        consEn:['Slightly slower than ReLU','Loses to SwiGLU'],
         fn: x => x * (1/(1+Math.exp(-1.702*x))) },
       swiglu: { label:'SwiGLU', era:'Shazeer 2020',
         clr:'var(--teal)', bg:'var(--teal-dim)', bd:'var(--teal)',
-        formula:'Swish(x) = x · σ(x)\nout = (W₁x ⊙ Swish(W₂x)) W₃\nскрытый слой: 8/3 · d',
+        formula:'Swish(x) = x · σ(x)\nout = (W₁x ⊙ Swish(W₂x)) W₃\nhidden: 8/3 · d',
         models:'Llama 1/2/3 · PaLM · Gemma · Mistral',
         insight:'Gated FFN: два параллельных линейных слоя перемножаются поэлементно. Лучше GELU при тех же FLOPs. Размер 8/3·d (≈2.67d) вместо 4d.',
+        insightEn:'Gated FFN: two parallel linear layers multiplied element-wise. Better than GELU at the same FLOPs. Size 8/3·d (≈2.67d) instead of 4d.',
         pros:['Лучшее качество при равных FLOPs','Де-факто стандарт 2023+'],
+        prosEn:['Best quality at equal FLOPs','De-facto standard 2023+'],
         cons:['3 матрицы вместо 2','Нестандартный размер слоя'],
+        consEn:['3 matrices instead of 2','Non-standard layer size'],
         fn: x => x * (1/(1+Math.exp(-x))) },
       geglu: { label:'GeGLU', era:'Shazeer 2020',
         clr:'var(--coral)', bg:'var(--coral-dim)', bd:'var(--coral)',
         formula:'out = (W₁x ⊙ GELU(W₂x)) W₃',
         models:'T5 v1.1 · UL2 · Flan-T5',
         insight:'SwiGLU с GELU вместо Swish в gate. Используется в T5-экосистеме. По качеству близко к SwiGLU.',
+        insightEn:'SwiGLU with GELU instead of Swish in the gate. Used in the T5 ecosystem. Quality close to SwiGLU.',
         pros:['Близко к SwiGLU по качеству','Используется в T5/Flan'],
+        prosEn:['Close to SwiGLU in quality','Used in T5/Flan'],
         cons:['Чуть уступает SwiGLU в benchmarks'],
+        consEn:['Slightly below SwiGLU on benchmarks'],
         fn: x => x * (1/(1+Math.exp(-1.702*x))) },
     }
   },
   attn: {
-    label: '4. Механизм Attention',
+    label: '4. Механизм Attention', labelEn: '4. Attention mechanism',
     sel: 'gqa',
     heads: true,
     opts: {
       mha: { label:'MHA', era:'original 2017',
         clr:'var(--muted)', bg:'var(--surface2)', bd:'var(--border2)',
-        formula:'H голов, у каждой своя KV-пара\nKV-кэш: H × seq × 2 × d_k',
+        formula:'H heads, each with its own KV pair\nKV-cache: H × seq × 2 × d_k',
         models:'BERT · GPT-2 · GPT-3 · T5',
         insight:'Multi-Head Attention. H=32 голов → 32 независимых KV-пары. Максимальное качество, максимальный KV-кэш.',
+        insightEn:'Multi-Head Attention. H=32 heads → 32 independent KV pairs. Maximum quality, maximum KV cache.',
         pros:['Максимальное качество','Каждая голова независима'],
+        prosEn:['Maximum quality','Each head is independent'],
         cons:['Огромный KV-кэш','Медленный инференс при длинных контекстах'],
+        consEn:['Huge KV cache','Slow inference for long contexts'],
         qH:4, kvH:4 },
       gqa: { label:'GQA', era:'Ainslie et al. 2023',
         clr:'var(--teal)', bg:'var(--teal-dim)', bd:'var(--teal)',
-        formula:'G групп, каждая группа Q-голов\nделит 1 KV-пару\nKV-кэш: G × seq × 2 × d_k',
+        formula:'G groups, each group of Q-heads\nshares 1 KV pair\nKV-cache: G × seq × 2 × d_k',
         models:'Llama 2 34B/70B · Llama 3 · Mistral · Falcon 40B',
         insight:'Grouped Query Attention. G=1 → MQA, G=H → MHA. G=8 при H=32 — золотой стандарт: минимальная потеря качества, кэш ×4 меньше.',
+        insightEn:'Grouped Query Attention. G=1 → MQA, G=H → MHA. G=8 with H=32 — the gold standard: minimal quality loss, 4× smaller cache.',
         pros:['Баланс качество/кэш','Минимальная потеря vs MHA','Стандарт 2023+'],
+        prosEn:['Quality/cache balance','Minimal loss vs MHA','Standard 2023+'],
         cons:['Чуть хуже MHA на некоторых задачах'],
+        consEn:['Slightly below MHA on some tasks'],
         qH:4, kvH:2 },
       mqa: { label:'MQA', era:'Shazeer 2019',
         clr:'var(--amber)', bg:'var(--amber-dim)', bd:'var(--amber)',
-        formula:'Все Q-головы делят 1 KV-пару\nKV-кэш: 1 × seq × 2 × d_k',
+        formula:'All Q-heads share 1 KV pair\nKV-cache: 1 × seq × 2 × d_k',
         models:'Falcon 7B · PaLM · Starcoder v1',
         insight:'Multi-Query Attention. Минимальный KV-кэш (÷H), но заметная потеря качества. GQA вытеснил MQA как лучший компромисс.',
+        insightEn:'Multi-Query Attention. Minimal KV cache (÷H), but noticeable quality loss. GQA has replaced MQA as the better trade-off.',
         pros:['Минимальный KV-кэш','Максимальная скорость инференса'],
+        prosEn:['Minimal KV cache','Maximum inference speed'],
         cons:['Заметная потеря качества vs MHA','Вытеснен GQA'],
+        consEn:['Noticeable quality loss vs MHA','Superseded by GQA'],
         qH:4, kvH:1 },
       mla: { label:'MLA', era:'DeepSeek V2 (2024)',
         clr:'var(--purple)', bg:'var(--purple-dim)', bd:'var(--purple)',
-        formula:'c_KV = W_KV · x  (сжатый латент)\nK,V разворачиваются из c_KV\nкэшируется только c_KV',
+        formula:'c_KV = W_KV · x  (compressed latent)\nK,V unpacked from c_KV\nonly c_KV is cached',
         models:'DeepSeek V2 · DeepSeek V3 · DeepSeek-R1',
         insight:'Multi-head Latent Attention. K и V сжимаются в низкоразмерный вектор c_KV (rank r << H·d_k). Кэшируется только c_KV — в 10–13× меньше памяти чем MHA при почти том же качестве.',
+        insightEn:'Multi-head Latent Attention. K and V are compressed into a low-rank vector c_KV (rank r << H·d_k). Only c_KV is cached — 10–13× less memory than MHA at nearly the same quality.',
         pros:['KV-кэш ×10–13 меньше чем MHA','Качество близко к MHA'],
+        prosEn:['KV cache ×10–13 smaller than MHA','Quality close to MHA'],
         cons:['Сложная реализация','Нужна декомпрессия при каждом inference-шаге'],
+        consEn:['Complex implementation','Decompression needed at each inference step'],
         qH:4, kvH:1, special:'mla' },
     }
   }
@@ -765,8 +829,13 @@ function renderArchStep() {
       </button>`).join('');
 
     // detail
-    const prosHtml = sel.pros.map(p=>`<span class="arch-chip pro">✓ ${p}</span>`).join('');
-    const consHtml = sel.cons.map(c=>`<span class="arch-chip con">✗ ${c}</span>`).join('');
+    const EN = T && LANG === 'en';
+    const pros = EN && sel.prosEn ? sel.prosEn : sel.pros;
+    const cons = EN && sel.consEn ? sel.consEn : sel.cons;
+    const insight = EN && sel.insightEn ? sel.insightEn : sel.insight;
+    const catLabel = EN && cat.labelEn ? cat.labelEn : cat.label;
+    const prosHtml = pros.map(p=>`<span class="arch-chip pro">✓ ${p}</span>`).join('');
+    const consHtml = cons.map(c=>`<span class="arch-chip con">✗ ${c}</span>`).join('');
 
     let visual = '';
     if (cat.canvas && sel.fn) {
@@ -777,12 +846,12 @@ function renderArchStep() {
     }
 
     div.innerHTML = `
-      <div class="arch-cat-hdr">${cat.label}</div>
+      <div class="arch-cat-hdr">${catLabel}</div>
       <div class="arch-tabs">${tabs}</div>
       <div class="arch-detail open" style="border-color:${sel.bd}20">
         <div>
-          <div class="arch-models">Модели: <span style="color:var(--text)">${sel.models}</span></div>
-          <div class="arch-insight">${sel.insight}</div>
+          <div class="arch-models">${EN ? 'Models' : 'Модели'}: <span style="color:var(--text)">${sel.models}</span></div>
+          <div class="arch-insight">${insight}</div>
           <div class="arch-formula">${sel.formula}</div>
           <div class="arch-chips" style="margin-top:8px">${prosHtml}${consHtml}</div>
         </div>
@@ -891,14 +960,18 @@ function renderScale() {
 
 // ── RLHF ─────────────────────────────────────────────────────────────
 const PHASES = [
-  {num:'фаза 1', name:'Предобучение (Pre-training)', cls:'ph1',
-   desc:'Обучаем декодер-трансформер предсказывать следующий токен на огромном корпусе (Common Crawl, книги, код). Результат: базовая модель, умеющая продолжать текст, но не следовать инструкциям.'},
-  {num:'фаза 2', name:'SFT — Supervised Fine-Tuning', cls:'ph2',
-   desc:'Дообучаем на 10–100k человеческих диалогов в формате инструкция → хороший ответ. Модель учится формату и базовому следованию инструкциям. Это уже полезная, но ещё не выравненная модель.'},
-  {num:'фаза 3', name:'Reward Model (RM)', cls:'ph3',
-   desc:'Люди ранжируют несколько ответов SFT-модели (A лучше B). На этих парах обучается отдельная модель-судья, предсказывающая числовую оценку качества ответа. RM — суррогат человеческих предпочтений.'},
-  {num:'фаза 4', name:'RLHF — PPO-обучение', cls:'ph4',
-   desc:'SFT-модель дообучается через Proximal Policy Optimization: генерирует ответы, RM оценивает, градиент награды обновляет веса. KL-дивергенция от SFT ограничивает "уход" модели и предотвращает reward hacking.'},
+  {num:'фаза 1', numEn:'phase 1', name:'Предобучение (Pre-training)', nameEn:'Pre-training', cls:'ph1',
+   desc:'Обучаем декодер-трансформер предсказывать следующий токен на огромном корпусе (Common Crawl, книги, код). Результат: базовая модель, умеющая продолжать текст, но не следовать инструкциям.',
+   descEn:'We train a decoder-transformer to predict the next token on a huge corpus (Common Crawl, books, code). Result: a base model that can continue text but not follow instructions.'},
+  {num:'фаза 2', numEn:'phase 2', name:'SFT — Supervised Fine-Tuning', nameEn:'SFT — Supervised Fine-Tuning', cls:'ph2',
+   desc:'Дообучаем на 10–100k человеческих диалогов в формате инструкция → хороший ответ. Модель учится формату и базовому следованию инструкциям. Это уже полезная, но ещё не выравненная модель.',
+   descEn:'Fine-tune on 10–100k human dialogues in instruction → good-answer format. The model learns the format and basic instruction-following. Already useful, but not yet aligned.'},
+  {num:'фаза 3', numEn:'phase 3', name:'Reward Model (RM)', nameEn:'Reward Model (RM)', cls:'ph3',
+   desc:'Люди ранжируют несколько ответов SFT-модели (A лучше B). На этих парах обучается отдельная модель-судья, предсказывающая числовую оценку качества ответа. RM — суррогат человеческих предпочтений.',
+   descEn:'Humans rank several SFT-model responses (A better than B). A separate judge model is trained on these pairs to predict a numeric quality score. RM is a surrogate for human preferences.'},
+  {num:'фаза 4', numEn:'phase 4', name:'RLHF — PPO-обучение', nameEn:'RLHF — PPO training', cls:'ph4',
+   desc:'SFT-модель дообучается через Proximal Policy Optimization: генерирует ответы, RM оценивает, градиент награды обновляет веса. KL-дивергенция от SFT ограничивает "уход" модели и предотвращает reward hacking.',
+   descEn:'The SFT model is fine-tuned via Proximal Policy Optimization: generates responses, RM scores them, reward gradient updates the weights. KL-divergence from SFT limits model drift and prevents reward hacking.'},
 ];
 let rlhfCur = 0;
 
@@ -908,7 +981,7 @@ function rlhfMove(d) {
 }
 
 function renderRLHF() {
-  document.getElementById('rlhfInfo').textContent = `фаза ${rlhfCur + 1} / ${PHASES.length}`;
+  document.getElementById('rlhfInfo').textContent = T ? `${T('фаза','phase')} ${rlhfCur + 1} / ${PHASES.length}` : `фаза ${rlhfCur + 1} / ${PHASES.length}`;
   document.getElementById('rlhfPrevBtn').disabled = rlhfCur === 0;
   document.getElementById('rlhfNextBtn').disabled = rlhfCur === PHASES.length - 1;
 
@@ -920,10 +993,11 @@ function renderRLHF() {
     div.className = `rlhf-phase ${p.cls}`;
     div.style.opacity = active ? '1' : '0.4';
     div.style.transform = active ? 'scale(1.01)' : 'scale(1)';
+    const EN = T && LANG === 'en';
     div.innerHTML = `
-      <div class="ph-num">${p.num}</div>
-      <div class="ph-name">${p.name}</div>
-      ${active ? `<div class="ph-desc">${p.desc}</div>` : ''}`;
+      <div class="ph-num">${EN && p.numEn ? p.numEn : p.num}</div>
+      <div class="ph-name">${EN && p.nameEn ? p.nameEn : p.name}</div>
+      ${active ? `<div class="ph-desc">${EN && p.descEn ? p.descEn : p.desc}</div>` : ''}`;
     div.onclick = () => { rlhfCur = i; renderRLHF(); };
     flow.appendChild(div);
   });
@@ -937,6 +1011,10 @@ renderArchStep();
 renderScale();
 renderRLHF();
 render();
+</script>
+<script src="lang.js"></script>
+<script>
+if(window.onLangChange) window.onLangChange();
 </script>
 </body>
 </html>

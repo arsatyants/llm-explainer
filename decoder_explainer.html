@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Декодер трансформера — пошаговый разбор</title>
+<title>Transformer Decoder — Step by Step / Декодер трансформера</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -120,13 +120,13 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
 <body>
 <div class="wrap">
 <div class="nav-links">
-  <a class="nav-link" href="encoder_explainer.html">← Энкодер</a>
-  <a class="nav-link" href="attention_explainer.html">⊙ Attention (детали)</a>
-  <a class="nav-link" href="llm_modern_explainer.html">→ Современный LLM</a>
+  <a class="nav-link" href="encoder_explainer.html" data-en="← Encoder">← Энкодер</a>
+  <a class="nav-link" href="attention_explainer.html" data-en="⊙ Attention (details)">⊙ Attention (детали)</a>
+  <a class="nav-link" href="llm_modern_explainer.html" data-en="→ Modern LLM">→ Современный LLM</a>
 </div>
 <div class="label">deep learning / nlp</div>
-<h1>Декодер<br><span>трансформера</span> — шаг за шагом</h1>
-<p class="subtitle">GPT-стиль: вектор "<strong>cat</strong>" (d=4) проходит через все слои. Все числа реальные — вычислены вручную.</p>
+<h1 data-en="Transformer<br><span>decoder</span> — step by step">Декодер<br><span>трансформера</span> — шаг за шагом</h1>
+<p class="subtitle" data-en='GPT-style: the "<strong>cat</strong>" vector (d=4) passes through all layers. All numbers are real — computed by hand.'>GPT-стиль: вектор "<strong>cat</strong>" (d=4) проходит через все слои. Все числа реальные — вычислены вручную.</p>
 
 <div class="step-nav" id="stepNav"></div>
 <div class="card">
@@ -136,21 +136,21 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
 <!-- STEP 0: Input -->
 <div class="panel active" id="p0">
   <div id="vt0"></div>
-  <div class="sec">шаг 1 / 6</div>
-  <h2>Вход декодера</h2>
-  <p style="color:var(--muted);margin-bottom:16px">GPT-декодер работает авторегрессионно: на шаге t входная последовательность — все токены до t. Цель — предсказать следующий.</p>
+  <div class="sec" data-en="step 1 / 6">шаг 1 / 6</div>
+  <h2 data-en="Decoder input">Вход декодера</h2>
+  <p style="color:var(--muted);margin-bottom:16px" data-en="The GPT decoder is autoregressive: at step t the input sequence is all tokens up to t. The goal is to predict the next one.">GPT-декодер работает авторегрессионно: на шаге t входная последовательность — все токены до t. Цель — предсказать следующий.</p>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0">
     <div style="padding:14px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
-      <div class="sec">Обучение (teacher forcing)</div>
+      <div class="sec" data-en="Training (teacher forcing)">Обучение (teacher forcing)</div>
       <div style="font-family:var(--mono);font-size:12px;line-height:2.2">
-        <span style="color:var(--muted)">Вход:</span>  <span style="color:var(--teal)">&lt;BOS&gt;</span> <span style="color:var(--text)">"The"</span> <span style="color:var(--text)">"cat"</span><br>
-        <span style="color:var(--muted)">Таргет:</span> <span style="color:var(--text)">"The"</span> <span style="color:var(--text)">"cat"</span> <span style="color:var(--purple)">"sat"</span><br>
-        <span style="color:var(--muted);font-size:10px">Все позиции параллельно (каузальная маска)</span>
+        <span style="color:var(--muted)" data-en="Input:">Вход:</span>  <span style="color:var(--teal)">&lt;BOS&gt;</span> <span style="color:var(--text)">"The"</span> <span style="color:var(--text)">"cat"</span><br>
+        <span style="color:var(--muted)" data-en="Target:">Таргет:</span> <span style="color:var(--text)">"The"</span> <span style="color:var(--text)">"cat"</span> <span style="color:var(--purple)">"sat"</span><br>
+        <span style="color:var(--muted);font-size:10px" data-en="All positions in parallel (causal mask)">Все позиции параллельно (каузальная маска)</span>
       </div>
     </div>
     <div style="padding:14px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
-      <div class="sec">Инференс (авторегрессия)</div>
+      <div class="sec" data-en="Inference (autoregression)">Инференс (авторегрессия)</div>
       <div style="font-family:var(--mono);font-size:12px;line-height:2.2">
         <span style="color:var(--teal)">&lt;BOS&gt;</span> → <span style="color:var(--text)">"The"</span><br>
         <span style="color:var(--teal)">&lt;BOS&gt;</span> <span style="color:var(--text)">"The"</span> → <span style="color:var(--text)">"cat"</span><br>
@@ -159,48 +159,49 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
     </div>
   </div>
 
-  <div style="font-family:var(--mono);font-size:12px;text-align:center;margin:12px 0">
+  <div style="font-family:var(--mono);font-size:12px;text-align:center;margin:12px 0"
+       data-en='Current step: <span style="color:var(--teal)">id=101</span> <span style="color:var(--text)">id=1996</span> <span style="color:var(--purple)">id=4937</span> → predicting <span style="color:var(--amber)">id=3290 ("sat")</span>'>
     Текущий шаг: <span style="color:var(--teal)">id=101</span> <span style="color:var(--text)">id=1996</span> <span style="color:var(--purple)">id=4937</span> → предсказываем <span style="color:var(--amber)">id=3290 ("sat")</span>
   </div>
 
-  <div class="note"><strong>Главное отличие от энкодера:</strong> каузальная маска запрещает токену видеть будущее. Во время обучения все позиции считаются параллельно — маска имитирует авторегрессию.</div>
+  <div class="note" data-en="<strong>Key difference from the encoder:</strong> the causal mask prevents a token from seeing the future. During training all positions are processed in parallel — the mask simulates autoregression."><strong>Главное отличие от энкодера:</strong> каузальная маска запрещает токену видеть будущее. Во время обучения все позиции считаются параллельно — маска имитирует авторегрессию.</div>
 </div>
 
 <!-- STEP 1: Embedding + PE -->
 <div class="panel" id="p1">
   <div id="vt1"></div>
-  <div class="sec">шаг 2 / 6</div>
+  <div class="sec" data-en="step 2 / 6">шаг 2 / 6</div>
   <h2>Embedding + Positional Encoding</h2>
-  <p style="color:var(--muted);margin-bottom:14px">d_model = 4. Каждый токен → вектор из таблицы эмбеддингов → прибавляем синусоидальное позиционное кодирование.</p>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="d_model = 4. Each token → vector from the embedding table → add sinusoidal positional encoding.">d_model = 4. Каждый токен → вектор из таблицы эмбеддингов → прибавляем синусоидальное позиционное кодирование.</p>
 
-  <div class="sec">Эмбеддинги (d=4):</div>
+  <div class="sec" data-en="Embeddings (d=4):">Эмбеддинги (d=4):</div>
   <div class="tok-vecs" id="embVecs"></div>
 
   <div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin:10px 0">
     PE(pos, 2i) = sin(pos / 10000<sup>2i/4</sup>) &nbsp;&nbsp; PE(pos, 2i+1) = cos(pos / 10000<sup>2i/4</sup>)
   </div>
 
-  <div class="sec" style="margin-top:12px">Позиционное кодирование PE (фактические значения):</div>
+  <div class="sec" style="margin-top:12px" data-en="Positional encoding PE (actual values):">Позиционное кодирование PE (фактические значения):</div>
   <div class="tok-vecs" id="peVecs"></div>
 
   <div style="font-family:var(--mono);font-size:13px;text-align:center;color:var(--muted);margin:10px 0">
     x = emb + PE &nbsp;↓
   </div>
 
-  <div class="sec">x = emb + PE (вход в трансформер):</div>
+  <div class="sec" data-en="x = emb + PE (transformer input):">x = emb + PE (вход в трансформер):</div>
   <div class="tok-vecs" id="xVecs"></div>
 
-  <div class="note"><strong>"cat" (поз. 2):</strong> emb = [−0.10, +0.90, +0.30, +0.60] + PE(2) = [+0.91, −0.42, +0.02, +1.00] → x₂ = [+0.81, +0.48, +0.32, +1.60]</div>
+  <div class="note" data-en='<strong>"cat" (pos. 2):</strong> emb = [−0.10, +0.90, +0.30, +0.60] + PE(2) = [+0.91, −0.42, +0.02, +1.00] → x₂ = [+0.81, +0.48, +0.32, +1.60]'><strong>"cat" (поз. 2):</strong> emb = [−0.10, +0.90, +0.30, +0.60] + PE(2) = [+0.91, −0.42, +0.02, +1.00] → x₂ = [+0.81, +0.48, +0.32, +1.60]</div>
 </div>
 
 <!-- STEP 2: Masked Self-Attention -->
 <div class="panel" id="p2">
   <div id="vt2"></div>
-  <div class="sec">шаг 3 / 6</div>
+  <div class="sec" data-en="step 3 / 6">шаг 3 / 6</div>
   <h2>Masked Self-Attention</h2>
-  <p style="color:var(--muted);margin-bottom:14px">d_k = 4. Для "cat" (поз. 2) каузальная маска разрешает видеть только &lt;BOS&gt; и "The".</p>
+  <p style="color:var(--muted);margin-bottom:14px" data-en='d_k = 4. For "cat" (pos. 2) the causal mask allows seeing only &lt;BOS&gt; and "The".'>d_k = 4. Для "cat" (поз. 2) каузальная маска разрешает видеть только &lt;BOS&gt; и "The".</p>
 
-  <div class="sec">Матрица оценок Q·Kᵀ/√d_k (÷2) + каузальная маска:</div>
+  <div class="sec" data-en="Score matrix Q·Kᵀ/√d_k (÷2) + causal mask:">Матрица оценок Q·Kᵀ/√d_k (÷2) + каузальная маска:</div>
   <div class="att-grid-wrap">
     <div class="att-grid" style="grid-template-columns:auto repeat(3,1fr)">
       <div class="ag-cell ag-hdr"></div>
@@ -226,16 +227,16 @@ h2{font-size:21px;font-weight:700;margin-bottom:8px;color:#fff}
   </div>
 
   <div class="cbox">
-<span style="color:var(--muted)">Для "cat" (Q₂ = [0.73, 0.62, 0.58, 0.91]):</span><br>
+<span style="color:var(--muted)" data-en='For "cat" (Q₂ = [0.73, 0.62, 0.58, 0.91]):'>Для "cat" (Q₂ = [0.73, 0.62, 0.58, 0.91]):</span><br>
 score(cat→&lt;BOS&gt;) = <span class="hi-q">0.73</span>·<span class="hi-k">0.82</span> + <span class="hi-q">0.62</span>·<span class="hi-k">0.64</span> + <span class="hi-q">0.58</span>·<span class="hi-k">0.31</span> + <span class="hi-q">0.91</span>·<span class="hi-k">0.45</span> = <span class="hi-r">1.586</span> ÷ 2 = 0.793<br>
 score(cat→"The") = <span class="hi-q">0.73</span>·<span class="hi-k">1.24</span> + <span class="hi-q">0.62</span>·<span class="hi-k">0.53</span> + <span class="hi-q">0.58</span>·<span class="hi-k">0.79</span> + <span class="hi-q">0.91</span>·<span class="hi-k">0.32</span> = <span class="hi-r">1.983</span> ÷ 2 = 0.992<br>
-score(cat→"cat") = <span style="color:var(--coral)">−∞ (каузальная маска)</span><br><br>
+score(cat→"cat") = <span style="color:var(--coral)" data-en="−∞ (causal mask)">−∞ (каузальная маска)</span><br><br>
 softmax([0.793, 0.992, −∞]):<br>
 exp: [<span class="hi-r">2.210</span>, <span class="hi-r">2.697</span>, 0] &nbsp;sum = 4.907<br>
 weights: [<span class="hi-r">0.451</span>, <span class="hi-r">0.549</span>, <span class="hi-r">0.000</span>]
   </div>
 
-  <div class="sec" style="margin-top:14px">Выход attention для "cat":</div>
+  <div class="sec" style="margin-top:14px" data-en='Attention output for "cat":'>Выход attention для "cat":</div>
   <div class="cbox">
 attn_out[cat] = <span class="hi-r">0.451</span> × V[&lt;BOS&gt;] + <span class="hi-r">0.549</span> × V["The"] + <span class="hi-r">0.000</span> × V["cat"]<br>
 = 0.451 × [<span class="hi-v">+0.72, +0.40, +0.47, +0.55</span>]<br>
@@ -246,126 +247,126 @@ attn_out[cat] = <span class="hi-r">0.451</span> × V[&lt;BOS&gt;] + <span class=
   </div>
 
   <div class="tok-vecs" id="attnOutVecs"></div>
-  <div class="note"><strong>"The" занимает 54.9% внимания</strong> — при "cat sat" модель ожидает продолжения после связки существительное + глагол, поэтому "The" (предшествующий "cat") имеет чуть больший вес.</div>
+  <div class="note" data-en='<strong>"The" gets 54.9% of attention</strong> — for "cat sat" the model expects a continuation after the noun + verb pair, so "The" (preceding "cat") gets a slightly higher weight.'><strong>"The" занимает 54.9% внимания</strong> — при "cat sat" модель ожидает продолжения после связки существительное + глагол, поэтому "The" (предшествующий "cat") имеет чуть больший вес.</div>
 </div>
 
 <!-- STEP 3: Add & Norm -->
 <div class="panel" id="p3">
   <div id="vt3"></div>
-  <div class="sec">шаг 4 / 6</div>
+  <div class="sec" data-en="step 4 / 6">шаг 4 / 6</div>
   <h2>Add &amp; LayerNorm</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Residual connection + нормализация. Делается дважды в каждом блоке: после attention и после FFN.</p>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="Residual connection + normalization. Applied twice in each block: after attention and after FFN.">Residual connection + нормализация. Делается дважды в каждом блоке: после attention и после FFN.</p>
 
   <div class="cbox">
-<span style="color:var(--muted)">Входной вектор "cat":</span><br>
+<span style="color:var(--muted)" data-en='Input vector "cat":'>Входной вектор "cat":</span><br>
 x₂ = [<span class="hi-g">+0.81, +0.48, +0.32, +1.60</span>]<br>
 attn_out = [<span class="hi-r">+0.824, +0.581, +0.421, +0.588</span>]<br><br>
-<span style="color:var(--muted)">Сумма (residual):</span><br>
+<span style="color:var(--muted)" data-en="Sum (residual):">Сумма (residual):</span><br>
 x₂ + attn_out = [<span class="hi-r">+1.634, +1.061, +0.741, +2.188</span>]
   </div>
 
-  <div class="sec" style="margin-top:14px">LayerNorm (нормализация по четырём измерениям):</div>
+  <div class="sec" style="margin-top:14px" data-en="LayerNorm (normalization over four dimensions):">LayerNorm (нормализация по четырём измерениям):</div>
   <div class="cbox">
 <span style="color:var(--muted)">x = [+1.634, +1.061, +0.741, +2.188]</span><br>
 μ  = (1.634 + 1.061 + 0.741 + 2.188) / 4 = <span class="hi-r">1.406</span><br>
 σ² = ((1.634−1.406)² + (1.061−1.406)² + (0.741−1.406)² + (2.188−1.406)²) / 4<br>
    = (0.052 + 0.119 + 0.442 + 0.611) / 4 = <span class="hi-r">0.306</span><br>
 σ  = √0.306 = <span class="hi-r">0.553</span><br><br>
-<span style="color:var(--muted)">Нормализованные значения (x − μ) / σ:</span><br>
+<span style="color:var(--muted)" data-en="Normalized values (x − μ) / σ:">Нормализованные значения (x − μ) / σ:</span><br>
 dim₀: (1.634 − 1.406) / 0.553 = <span class="hi-r">+0.412</span><br>
 dim₁: (1.061 − 1.406) / 0.553 = <span class="hi-r">−0.624</span><br>
 dim₂: (0.741 − 1.406) / 0.553 = <span class="hi-r">−1.202</span><br>
 dim₃: (2.188 − 1.406) / 0.553 = <span class="hi-r">+1.415</span>
   </div>
 
-  <div class="sec" style="margin-top:14px">Вектор "cat" после Add&amp;Norm:</div>
+  <div class="sec" style="margin-top:14px" data-en='"cat" vector after Add&amp;Norm:'>Вектор "cat" после Add&amp;Norm:</div>
   <div class="tok-vecs" id="normVecs"></div>
 
-  <div class="note"><strong>Зачем residual?</strong> Без x₂ + attn_out информация о позиции и эмбеддинге терялась бы. Residual гарантирует, что каждый слой "добавляет", а не "заменяет". LayerNorm стабилизирует обучение: среднее → 0, дисперсия → 1.</div>
+  <div class="note" data-en="<strong>Why residual?</strong> Without x₂ + attn_out the position and embedding information would be lost. Residual ensures each layer &#39;adds&#39; rather than &#39;replaces&#39;. LayerNorm stabilizes training: mean → 0, variance → 1."><strong>Зачем residual?</strong> Без x₂ + attn_out информация о позиции и эмбеддинге терялась бы. Residual гарантирует, что каждый слой "добавляет", а не "заменяет". LayerNorm стабилизирует обучение: среднее → 0, дисперсия → 1.</div>
 </div>
 
 <!-- STEP 4: FFN -->
 <div class="panel" id="p4">
   <div id="vt4"></div>
-  <div class="sec">шаг 5 / 6</div>
+  <div class="sec" data-en="step 5 / 6">шаг 5 / 6</div>
   <h2>Feed-Forward Network</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Позиционно-независимая нейросеть из двух линейных слоёв. Применяется к каждому токену отдельно и одинаково.</p>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="A position-independent two-layer network. Applied identically and independently to each token.">Позиционно-независимая нейросеть из двух линейных слоёв. Применяется к каждому токену отдельно и одинаково.</p>
 
   <div class="ffn-flow">
-    <div class="ffn-box" style="border-color:var(--purple);color:var(--purple)">норм. вектор<div class="dim">d = 4</div></div>
+    <div class="ffn-box" style="border-color:var(--purple);color:var(--purple)" data-en="norm. vector<div class='dim'>d = 4</div>">норм. вектор<div class="dim">d = 4</div></div>
     <div class="ffn-arrow">→</div>
     <div class="ffn-box" style="border-color:var(--amber);color:var(--amber)">Linear₁<div class="dim">4 → 16</div></div>
     <div class="ffn-arrow">→</div>
-    <div class="ffn-box" style="border-color:var(--teal);color:var(--teal)">GELU<div class="dim">нелинейность</div></div>
+    <div class="ffn-box" style="border-color:var(--teal);color:var(--teal)" data-en="GELU<div class='dim'>nonlinearity</div>">GELU<div class="dim">нелинейность</div></div>
     <div class="ffn-arrow">→</div>
     <div class="ffn-box" style="border-color:var(--amber);color:var(--amber)">Linear₂<div class="dim">16 → 4</div></div>
     <div class="ffn-arrow">→</div>
-    <div class="ffn-box" style="border-color:var(--teal);color:var(--teal)">Add &amp; Norm<div class="dim">вход + ffn_out</div></div>
+    <div class="ffn-box" style="border-color:var(--teal);color:var(--teal)" data-en="Add &amp; Norm<div class='dim'>input + ffn_out</div>">Add &amp; Norm<div class="dim">вход + ffn_out</div></div>
   </div>
 
   <div class="cbox">
-<span style="color:var(--muted)">Вход FFN ("cat" после Add&amp;Norm):</span><br>
+<span style="color:var(--muted)" data-en='FFN input ("cat" after Add&amp;Norm):'>Вход FFN ("cat" после Add&amp;Norm):</span><br>
 [<span class="hi-r">+0.412, −0.624, −1.202, +1.415</span>]<br><br>
-<span style="color:var(--muted)">После Linear₁ (4→16) + GELU: 16 скрытых нейронов</span><br>
+<span style="color:var(--muted)" data-en="After Linear₁ (4→16) + GELU: 16 hidden neurons">После Linear₁ (4→16) + GELU: 16 скрытых нейронов</span><br>
 [<span class="hi-g">+0.83, −0.41, +1.21, +0.67, −0.93, +0.55, +1.08, −0.29,<br>
 &nbsp;+0.44, −0.77, +0.91, +1.34, −0.18, +0.63, −0.52, +0.76</span>]<br><br>
-<span style="color:var(--muted)">После Linear₂ (16→4) — сжатие обратно:</span><br>
+<span style="color:var(--muted)" data-en="After Linear₂ (16→4) — compressing back:">После Linear₂ (16→4) — сжатие обратно:</span><br>
 ffn_out = [<span class="hi-r">+0.55, −0.23, +0.89, +0.64</span>]<br><br>
-<span style="color:var(--muted)">Residual: норм. вектор + ffn_out → LayerNorm:</span><br>
+<span style="color:var(--muted)" data-en="Residual: norm. vector + ffn_out → LayerNorm:">Residual: норм. вектор + ffn_out → LayerNorm:</span><br>
 [0.412, −0.624, −1.202, +1.415] + [0.55, −0.23, +0.89, +0.64]<br>
 = [0.962, −0.854, −0.312, 2.055] → LayerNorm →<br>
-<span style="color:var(--purple)">финальный вектор "cat": [+0.31, −0.48, +0.76, +1.05]</span>
+<span style="color:var(--purple)" data-en='final vector "cat": [+0.31, −0.48, +0.76, +1.05]'>финальный вектор "cat": [+0.31, −0.48, +0.76, +1.05]</span>
   </div>
 
-  <div class="sec" style="margin-top:14px">Итоговый вектор "cat" после всего блока:</div>
+  <div class="sec" style="margin-top:14px" data-en='Final "cat" vector after the full block:'>Итоговый вектор "cat" после всего блока:</div>
   <div class="tok-vecs" id="ffnVecs"></div>
 
-  <div class="note"><strong>Роль FFN:</strong> attention — коммуникация между токенами, FFN — обработка информации внутри одного токена. В BERT-base: 4×768 = 3072 скрытых нейрона. Это место, где хранится "фактическое знание" модели.</div>
+  <div class="note" data-en="<strong>FFN&#39;s role:</strong> attention is communication between tokens; FFN is information processing within a single token. In BERT-base: 4×768 = 3072 hidden neurons. This is where the model&#39;s &#39;factual knowledge&#39; is stored."><strong>Роль FFN:</strong> attention — коммуникация между токенами, FFN — обработка информации внутри одного токена. В BERT-base: 4×768 = 3072 скрытых нейрона. Это место, где хранится "фактическое знание" модели.</div>
 </div>
 
 <!-- STEP 5: LM Head -->
 <div class="panel" id="p5">
   <div id="vt5"></div>
-  <div class="sec">шаг 6 / 6</div>
-  <h2>LM Head — предсказание следующего токена</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Финальный вектор последнего токена ("cat") проецируется на размер словаря. Softmax даёт вероятности.</p>
+  <div class="sec" data-en="step 6 / 6">шаг 6 / 6</div>
+  <h2 data-en="LM Head — next token prediction">LM Head — предсказание следующего токена</h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en='The final vector of the last token ("cat") is projected onto the vocabulary size. Softmax gives probabilities.'>Финальный вектор последнего токена ("cat") проецируется на размер словаря. Softmax даёт вероятности.</p>
 
   <div class="cbox">
-<span style="color:var(--muted)">Финальный вектор "cat":</span><br>
+<span style="color:var(--muted)" data-en='Final vector "cat":'>Финальный вектор "cat":</span><br>
 h₂ = [<span class="hi-r">+0.31, −0.48, +0.76, +1.05</span>]<br><br>
-<span style="color:var(--muted)">LM Head: Linear(d=4 → vocab=8) без bias:</span><br>
+<span style="color:var(--muted)" data-en="LM Head: Linear(d=4 → vocab=8) no bias:">LM Head: Linear(d=4 → vocab=8) без bias:</span><br>
 logits = h₂ @ W_lm<br>
-<span style="font-size:11px;color:var(--muted)">(8 скалярных произведений — по одному на каждый токен словаря)</span>
+<span style="font-size:11px;color:var(--muted)" data-en="(8 dot products — one per vocabulary token)">(8 скалярных произведений — по одному на каждый токен словаря)</span>
   </div>
 
-  <div class="sec" style="margin-top:14px">Логиты и вероятности (vocab = 8 токенов):</div>
+  <div class="sec" style="margin-top:14px" data-en="Logits and probabilities (vocab = 8 tokens):">Логиты и вероятности (vocab = 8 токенов):</div>
   <div class="bar-chart" id="lmBarChart"></div>
 
   <div style="text-align:center;margin:14px 0;padding:12px;background:var(--purple-dim);border:0.5px solid rgba(139,124,248,.35);border-radius:8px">
-    <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:4px">argmax → следующий токен</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:4px" data-en="argmax → next token">argmax → следующий токен</div>
     <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--purple)">"sat"</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:2px">логит = 4.10 &nbsp;|&nbsp; P = 74.4%</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:2px" data-en="logit = 4.10 &nbsp;|&nbsp; P = 74.4%">логит = 4.10 &nbsp;|&nbsp; P = 74.4%</div>
   </div>
 
   <div style="margin-top:20px;padding-top:18px;border-top:0.5px solid var(--border2)">
-    <div class="sec">Прогресс вектора "cat" — все шаги</div>
+    <div class="sec" data-en='"cat" vector progress — all steps'>Прогресс вектора "cat" — все шаги</div>
     <div style="font-family:var(--mono);font-size:11px;line-height:2.4;color:var(--muted)">
       emb:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [<span style="color:var(--teal)">−0.10, +0.90, +0.30, +0.60</span>]<br>
       +PE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [<span style="color:var(--teal)">+0.81, +0.48, +0.32, +1.60</span>]<br>
       attn_out:  [<span style="color:var(--blue)">+0.82, +0.58, +0.42, +0.59</span>]<br>
       +residual: [<span style="color:var(--amber)">+1.63, +1.06, +0.74, +2.19</span>]<br>
       LayerNorm: [<span style="color:var(--amber)">+0.41, −0.62, −1.20, +1.42</span>]<br>
-      +FFN:&nbsp;&nbsp;&nbsp;&nbsp;  [<span style="color:var(--purple)">+0.31, −0.48, +0.76, +1.05</span>] ← финал
+      +FFN:&nbsp;&nbsp;&nbsp;&nbsp;  [<span style="color:var(--purple)">+0.31, −0.48, +0.76, +1.05</span>] ← <span data-en="final">финал</span>
     </div>
   </div>
 
-  <div class="note note-teal"><strong>Ключевой момент:</strong> этот финальный вектор уже не просто "cat" — он контекстуализирован: "кот, сидящий на чём-то" после "The cat". Именно поэтому модель уверена в "sat" (74.4%), а не в "mat" (12.3%).</div>
+  <div class="note note-teal" data-en='<strong>Key point:</strong> this final vector is no longer just "cat" — it is contextualized: "a cat sitting on something" after "The cat". That is why the model is confident about "sat" (74.4%) over "mat" (12.3%).'><strong>Ключевой момент:</strong> этот финальный вектор уже не просто "cat" — он контекстуализирован: "кот, сидящий на чём-то" после "The cat". Именно поэтому модель уверена в "sat" (74.4%), а не в "mat" (12.3%).</div>
 </div>
 
 <div class="nav-row">
-  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← назад</button>
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled data-en="← back">← назад</button>
   <span class="counter" id="counter">1 / 6</span>
-  <button class="nav-btn" id="nextBtn" onclick="go(1)">далее →</button>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)" data-en="next →">далее →</button>
 </div>
 </div>
 </div>
@@ -418,7 +419,7 @@ function renderVT(panelIdx){
   if(!el) return;
   const visible = TRACK_STAGES.filter(s=>s.show.includes(panelIdx+1));
   if(visible.length===0){el.innerHTML='';return;}
-  let html = `<div class="vtrack"><div class="vtrack-title">вектор "cat" (d=4) — прогресс через сеть</div>`;
+  let html = `<div class="vtrack"><div class="vtrack-title">${T?T('вектор "cat" (d=4) — прогресс через сеть','"cat" vector (d=4) — progress through the network'):'вектор "cat" (d=4) — прогресс через сеть'}</div>`;
   visible.forEach((s,i)=>{
     const isCurrent = i===visible.length-1;
     html += `<div class="vtrack-row ${isCurrent?'current':''}">
@@ -442,7 +443,7 @@ function initEmbedding(){
 
 function initAttnOut(){
   document.getElementById('attnOutVecs').innerHTML =
-    `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px">Выходы attention всех токенов (после взвешенной суммы V):</div>`+
+    `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px">${T?T('Выходы attention всех токенов (после взвешенной суммы V):','Attention outputs for all tokens (after weighted sum of V):'):'Выходы attention всех токенов (после взвешенной суммы V):'}</div>`+
     TNAMES.map((n,i)=>vecRowHtml(n, ATTN_OUT[i], i===2, i===2?'var(--purple)':'')).join('');
 }
 
@@ -481,25 +482,31 @@ function initLM(){
 
 // ── Navigation ────────────────────────────────────────────────────────
 const STEPS = [
-  {id:'p0',label:'01 вход'},
-  {id:'p1',label:'02 emb+PE'},
-  {id:'p2',label:'03 attention'},
-  {id:'p3',label:'04 add+norm'},
-  {id:'p4',label:'05 FFN'},
-  {id:'p5',label:'06 LM head'},
+  {id:'p0',label:'01 вход',    en:'01 input'},
+  {id:'p1',label:'02 emb+PE',  en:'02 emb+PE'},
+  {id:'p2',label:'03 attention',en:'03 attention'},
+  {id:'p3',label:'04 add+norm',en:'04 add+norm'},
+  {id:'p4',label:'05 FFN',     en:'05 FFN'},
+  {id:'p5',label:'06 LM head', en:'06 LM head'},
 ];
 let cur = 0;
 const nav = document.getElementById('stepNav');
-STEPS.forEach((s,i)=>{
-  const b=document.createElement('button');
-  b.className='step-btn'+(i===0?' active':'');
-  b.textContent=s.label; b.onclick=()=>jump(i); nav.appendChild(b);
-});
+function buildNav(){
+  nav.innerHTML='';
+  STEPS.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='step-btn'+(i===cur?' active':'');
+    b.innerHTML=window.T?T(s.label,s.en):s.label;
+    b.dataset.en=s.en;
+    b.onclick=()=>jump(i); nav.appendChild(b);
+  });
+}
+buildNav();
 
 function render(){
   STEPS.forEach((s,i)=>{
     document.getElementById(s.id).classList.toggle('active',i===cur);
-    nav.children[i].classList.toggle('active',i===cur);
+    if(nav.children[i]) nav.children[i].classList.toggle('active',i===cur);
   });
   document.getElementById('counter').textContent=(cur+1)+' / '+STEPS.length;
   document.getElementById('prevBtn').disabled=cur===0;
@@ -513,8 +520,10 @@ function render(){
 }
 function go(d){cur=Math.max(0,Math.min(STEPS.length-1,cur+d));render();}
 function jump(i){cur=i;render();}
+window.onLangChange=function(){buildNav();render();if(window.applyLang)applyLang();};
 
 render();
 </script>
+<script src="lang.js"></script>
 </body>
 </html>

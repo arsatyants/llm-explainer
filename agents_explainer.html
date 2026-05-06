@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLM-агенты — от модели к агенту</title>
+<title>LLM Agents — From Model to Agent / LLM-агенты</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -142,29 +142,29 @@ input[type=range]{flex:1;accent-color:var(--pink)}
 <div class="wrap">
 
 <div class="nav-links">
-  <a class="nav-link" href="index.html">← Главная</a>
-  <a class="nav-link" href="llm_modern_explainer.html">← Современный LLM</a>
-  <a class="nav-link" href="decoder_explainer.html">← Декодер</a>
+  <a class="nav-link" href="index.html" data-en="← Home">← Главная</a>
+  <a class="nav-link" href="llm_modern_explainer.html" data-en="← Modern LLM">← Современный LLM</a>
+  <a class="nav-link" href="decoder_explainer.html" data-en="← Decoder">← Декодер</a>
 </div>
 
 <div class="label">modern ai systems · agents</div>
-<h1>LLM-агенты<br><span>с циклом обратной связи</span></h1>
-<p class="subtitle">Как Claude, GPT-4o и Gemini превращаются из «предсказателей следующего токена» в агентов, способных планировать, использовать инструменты и работать в команде.</p>
+<h1 data-en="LLM agents<br><span>with feedback loop</span>">LLM-агенты<br><span>с циклом обратной связи</span></h1>
+<p class="subtitle" data-en="How Claude, GPT-4o and Gemini go from &#39;next-token predictors&#39; to agents that can plan, use tools, and work in teams.">Как Claude, GPT-4o и Gemini превращаются из «предсказателей следующего токена» в агентов, способных планировать, использовать инструменты и работать в команде.</p>
 
 <div class="step-nav" id="stepNav"></div>
 <div class="card">
 
 <!-- STEP 0: LLM → Agent -->
 <div class="panel active" id="p0">
-  <div class="sec">шаг 1 / 6</div>
-  <h2>От языковой модели к агенту</h2>
-  <p style="color:var(--muted);margin-bottom:16px">Голая LLM — это функция: текст→текст, один проход. Агент — это LLM в цикле с доступом к внешнему миру.</p>
+  <div class="sec" data-en="step 1 / 6">шаг 1 / 6</div>
+  <h2 data-en="From language model to agent">От языковой модели к агенту</h2>
+  <p style="color:var(--muted);margin-bottom:16px" data-en="A bare LLM is a function: text→text, one pass. An agent is an LLM in a loop with access to the outside world.">Голая LLM — это функция: текст→текст, один проход. Агент — это LLM в цикле с доступом к внешнему миру.</p>
 
   <div class="cmp2">
     <div class="cmp-box cmp-old">
-      <div class="era">базовая LLM</div>
+      <div class="era" data-en="basic LLM">базовая LLM</div>
       <div class="nm">text → text</div>
-      <div class="desc">
+      <div class="desc" data-en="Receives prompt → one forward pass → returns tokens.<br><br>✓ Answers, paraphrasing, translation<br>✗ Doesn&#39;t know current time<br>✗ Can&#39;t open files<br>✗ Doesn&#39;t remember past conversations<br>✗ Can&#39;t verify its own answer">
         Получает промпт → делает один forward pass → возвращает токены.<br><br>
         ✓ Ответы, перефразирование, перевод<br>
         ✗ Не знает текущее время<br>
@@ -174,9 +174,9 @@ input[type=range]{flex:1;accent-color:var(--pink)}
       </div>
     </div>
     <div class="cmp-box cmp-new">
-      <div class="era">LLM-агент</div>
-      <div class="nm">цикл: think → act → observe</div>
-      <div class="desc">
+      <div class="era" data-en="LLM agent">LLM-агент</div>
+      <div class="nm" data-en="loop: think → act → observe">цикл: think → act → observe</div>
+      <div class="desc" data-en="LLM + tools + feedback loop.<br><br>✓ Runs code, sees results<br>✓ Reads files, browser, APIs<br>✓ Long-term memory (outside context)<br>✓ Checks and corrects itself<br>✓ Delegates subtasks to other agents">
         LLM + инструменты + цикл обратной связи.<br><br>
         ✓ Запускает код, видит результат<br>
         ✓ Читает файлы, браузер, API<br>
@@ -187,7 +187,8 @@ input[type=range]{flex:1;accent-color:var(--pink)}
     </div>
   </div>
 
-  <div style="font-family:var(--mono);font-size:12px;text-align:center;padding:14px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2);margin:12px 0;line-height:2.4">
+  <div style="font-family:var(--mono);font-size:12px;text-align:center;padding:14px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2);margin:12px 0;line-height:2.4"
+       data-en='<span style="color:var(--muted)">Key idea:</span> LLM generates not just an answer but also <span style="color:var(--amber)">tool calls</span>.<br>The environment executes the tool and returns the result back to the context.<br>LLM reads the context again → decides to continue or answer.'>
     <span style="color:var(--muted)">Ключевая идея:</span> LLM генерирует не только ответ, но и <span style="color:var(--amber)">вызовы инструментов</span>.<br>
     Среда исполняет инструмент и возвращает результат обратно в контекст.<br>
     LLM снова читает контекст → решает продолжить или ответить.
@@ -197,94 +198,95 @@ input[type=range]{flex:1;accent-color:var(--pink)}
     <div style="padding:12px 8px;border-radius:8px;background:var(--blue-dim);border:0.5px solid var(--blue);color:var(--blue)">
       <div style="font-family:var(--mono);font-size:20px;margin-bottom:4px">🧠</div>
       <div style="font-family:var(--mono);font-size:12px;font-weight:700">Think</div>
-      <div style="font-size:11px;opacity:.8;margin-top:3px">рассуждение</div>
+      <div style="font-size:11px;opacity:.8;margin-top:3px" data-en="reasoning">рассуждение</div>
     </div>
     <div style="padding:12px 8px;border-radius:8px;background:var(--amber-dim);border:0.5px solid var(--amber);color:var(--amber)">
       <div style="font-family:var(--mono);font-size:20px;margin-bottom:4px">⚡</div>
       <div style="font-family:var(--mono);font-size:12px;font-weight:700">Act</div>
-      <div style="font-size:11px;opacity:.8;margin-top:3px">вызов инструмента</div>
+      <div style="font-size:11px;opacity:.8;margin-top:3px" data-en="tool call">вызов инструмента</div>
     </div>
     <div style="padding:12px 8px;border-radius:8px;background:var(--teal-dim);border:0.5px solid var(--teal);color:var(--teal)">
       <div style="font-family:var(--mono);font-size:20px;margin-bottom:4px">👁</div>
       <div style="font-family:var(--mono);font-size:12px;font-weight:700">Observe</div>
-      <div style="font-size:11px;opacity:.8;margin-top:3px">результат в контекст</div>
+      <div style="font-size:11px;opacity:.8;margin-top:3px" data-en="result into context">результат в контекст</div>
     </div>
     <div style="padding:12px 8px;border-radius:8px;background:var(--purple-dim);border:0.5px solid var(--purple);color:var(--purple)">
       <div style="font-family:var(--mono);font-size:20px;margin-bottom:4px">↩</div>
       <div style="font-family:var(--mono);font-size:12px;font-weight:700">Repeat</div>
-      <div style="font-size:11px;opacity:.8;margin-top:3px">или ответить</div>
+      <div style="font-size:11px;opacity:.8;margin-top:3px" data-en="or answer">или ответить</div>
     </div>
   </div>
 
-  <div class="note note-pink"><strong>Claude, GPT-4o, Gemini:</strong> все поддерживают нативный tool use — модель обучена генерировать структурированные вызовы инструментов как часть своего вывода, а не как постпроцессинг.</div>
+  <div class="note note-pink" data-en="<strong>Claude, GPT-4o, Gemini:</strong> all support native tool use — the model is trained to generate structured tool calls as part of its output, not as post-processing."><strong>Claude, GPT-4o, Gemini:</strong> все поддерживают нативный tool use — модель обучена генерировать структурированные вызовы инструментов как часть своего вывода, а не как постпроцессинг.</div>
 </div>
 
 <!-- STEP 1: Tool use -->
 <div class="panel" id="p1">
-  <div class="sec">шаг 2 / 6</div>
+  <div class="sec" data-en="step 2 / 6">шаг 2 / 6</div>
   <h2>Tool Use / Function Calling</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Модели видят список доступных инструментов в системном промпте и генерируют структурированные вызовы. Выбери инструмент:</p>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="Models see the list of available tools in the system prompt and generate structured calls. Choose a tool:">Модели видят список доступных инструментов в системном промпте и генерируют структурированные вызовы. Выбери инструмент:</p>
 
   <div class="tool-tabs" id="toolTabs"></div>
   <div id="toolDemo"></div>
 
   <div style="margin-top:16px;padding:12px 16px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
-    <div class="sec">Типичные инструменты современных агентов</div>
+    <div class="sec" data-en="Typical tools of modern agents">Типичные инструменты современных агентов</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted)">
-      <div>⚡ <strong style="color:var(--text)">bash / python</strong> — выполнение кода</div>
-      <div>🌐 <strong style="color:var(--text)">web_search</strong> — поиск в интернете</div>
-      <div>📄 <strong style="color:var(--text)">read_file / write_file</strong> — работа с FS</div>
-      <div>🖥 <strong style="color:var(--text)">computer_use</strong> — управление ПК</div>
-      <div>🔌 <strong style="color:var(--text)">MCP-серверы</strong> — любое внешнее API</div>
-      <div>🧠 <strong style="color:var(--text)">memory_store</strong> — сохранить факт</div>
+      <div data-en='⚡ <strong style="color:var(--text)">bash / python</strong> — run code'>⚡ <strong style="color:var(--text)">bash / python</strong> — выполнение кода</div>
+      <div data-en='🌐 <strong style="color:var(--text)">web_search</strong> — web search'>🌐 <strong style="color:var(--text)">web_search</strong> — поиск в интернете</div>
+      <div data-en='📄 <strong style="color:var(--text)">read_file / write_file</strong> — filesystem ops'>📄 <strong style="color:var(--text)">read_file / write_file</strong> — работа с FS</div>
+      <div data-en='🖥 <strong style="color:var(--text)">computer_use</strong> — control desktop'>🖥 <strong style="color:var(--text)">computer_use</strong> — управление ПК</div>
+      <div data-en='🔌 <strong style="color:var(--text)">MCP servers</strong> — any external API'>🔌 <strong style="color:var(--text)">MCP-серверы</strong> — любое внешнее API</div>
+      <div data-en='🧠 <strong style="color:var(--text)">memory_store</strong> — save a fact'>🧠 <strong style="color:var(--text)">memory_store</strong> — сохранить факт</div>
     </div>
   </div>
 
-  <div class="note note-amber"><strong>Безопасность:</strong> пользователь явно разрешает каждый инструмент. Claude никогда не запустит bash без разрешения. Tool use — сознательный выбор, а не автоматическое действие.</div>
+  <div class="note note-amber" data-en="<strong>Safety:</strong> the user explicitly approves each tool. Claude will never run bash without permission. Tool use is a deliberate choice, not an automatic action."><strong>Безопасность:</strong> пользователь явно разрешает каждый инструмент. Claude никогда не запустит bash без разрешения. Tool use — сознательный выбор, а не автоматическое действие.</div>
 </div>
 
 <!-- STEP 2: Agent loop interactive -->
 <div class="panel" id="p2">
-  <div class="sec">шаг 3 / 6</div>
-  <h2>Агентный цикл — ReAct</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Задача: <strong style="color:var(--text)">"Сколько файлов .py в этом репозитории и какой самый большой?"</strong> Нажимай для прохода по шагам.</p>
+  <div class="sec" data-en="step 3 / 6">шаг 3 / 6</div>
+  <h2 data-en="Agent loop — ReAct">Агентный цикл — ReAct</h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en='Task: <strong style="color:var(--text)">"How many .py files are in this repo and which is the largest?"</strong> Click to walk through the steps.'>Задача: <strong style="color:var(--text)">"Сколько файлов .py в этом репозитории и какой самый большой?"</strong> Нажимай для прохода по шагам.</p>
 
   <div class="ctrl-row">
-    <button class="ctrl-btn" id="loopPrev" onclick="loopMove(-1)" disabled>← назад</button>
+    <button class="ctrl-btn" id="loopPrev" onclick="loopMove(-1)" disabled data-en="← back">← назад</button>
     <span class="ctrl-info" id="loopInfo">шаг 1 / 5</span>
-    <button class="ctrl-btn" id="loopNext" onclick="loopMove(1)">вперёд →</button>
+    <button class="ctrl-btn" id="loopNext" onclick="loopMove(1)" data-en="forward →">вперёд →</button>
   </div>
 
   <div class="loop-steps" id="loopSteps"></div>
 
-  <div style="margin-top:14px;padding:12px 16px;background:var(--surface2);border-radius:8px;border:0.5px solid var(--border2);font-family:var(--mono);font-size:12px;color:var(--muted)">
+  <div style="margin-top:14px;padding:12px 16px;background:var(--surface2);border-radius:8px;border:0.5px solid var(--border2);font-family:var(--mono);font-size:12px;color:var(--muted)"
+       data-en='<span style="color:var(--text)">Model context grows at each step:</span><br>[system prompt + tools] + [user msg] + [think₁ + act₁ + obs₁] + [think₂ + act₂ + obs₂] + … + [answer]'>
     <span style="color:var(--text)">Контекст модели растёт с каждым шагом:</span><br>
     [system prompt + tools] + [user msg] + [think₁ + act₁ + obs₁] + [think₂ + act₂ + obs₂] + … + [answer]
   </div>
 
-  <div class="note"><strong>ReAct (Reason + Act):</strong> паттерн, при котором модель явно рассуждает перед каждым действием. Это делает цепочку прозрачной и позволяет перехватить ошибку до исполнения.</div>
+  <div class="note" data-en="<strong>ReAct (Reason + Act):</strong> a pattern where the model explicitly reasons before each action. This makes the chain transparent and allows catching errors before execution."><strong>ReAct (Reason + Act):</strong> паттерн, при котором модель явно рассуждает перед каждым действием. Это делает цепочку прозрачной и позволяет перехватить ошибку до исполнения.</div>
 </div>
 
 <!-- STEP 3: Extended thinking -->
 <div class="panel" id="p3">
-  <div class="sec">шаг 4 / 6</div>
-  <h2>Расширенное мышление (Extended Thinking)</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Claude 3.5+ и o1/o3 выделяют отдельный «черновик» рассуждений перед финальным ответом. Это не просто CoT в промпте — это отдельный тип токенов.</p>
+  <div class="sec" data-en="step 4 / 6">шаг 4 / 6</div>
+  <h2 data-en="Extended Thinking">Расширенное мышление (Extended Thinking)</h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="Claude 3.5+ and o1/o3 allocate a separate reasoning &#39;draft&#39; before the final answer. This is not just CoT in the prompt — it is a separate token type.">Claude 3.5+ и o1/o3 выделяют отдельный «черновик» рассуждений перед финальным ответом. Это не просто CoT в промпте — это отдельный тип токенов.</p>
 
   <div class="cmp2">
     <div class="cmp-box cmp-old">
-      <div class="era">обычный режим</div>
-      <div class="nm">прямой ответ</div>
-      <div class="desc">Модель генерирует ответ за один проход. Рассуждения смешаны с ответом или отсутствуют. Быстро, но хуже на сложных задачах.</div>
+      <div class="era" data-en="normal mode">обычный режим</div>
+      <div class="nm" data-en="direct answer">прямой ответ</div>
+      <div class="desc" data-en="Model generates an answer in one pass. Reasoning is mixed with the answer or absent. Fast, but worse on complex tasks.">Модель генерирует ответ за один проход. Рассуждения смешаны с ответом или отсутствуют. Быстро, но хуже на сложных задачах.</div>
     </div>
     <div class="cmp-box cmp-new">
       <div class="era">extended thinking</div>
-      <div class="nm">&lt;thinking&gt; + ответ</div>
-      <div class="desc">Модель генерирует скрытые «думающие» токены. Может менять направление, исправлять себя. Пользователь видит только финальный ответ (или collapse-блок).</div>
+      <div class="nm" data-en="&lt;thinking&gt; + answer">&lt;thinking&gt; + ответ</div>
+      <div class="desc" data-en="Model generates hidden &lsquo;thinking&rsquo; tokens. Can change direction, correct itself. User sees only the final answer (or a collapsible block).">Модель генерирует скрытые «думающие» токены. Может менять направление, исправлять себя. Пользователь видит только финальный ответ (или collapse-блок).</div>
     </div>
   </div>
 
-  <div class="sec" style="margin-top:16px">Пример: "Докажи, что √2 иррационально"</div>
+  <div class="sec" style="margin-top:16px" data-en='Example: "Prove that √2 is irrational"'>Пример: "Докажи, что √2 иррационально"</div>
 
   <div class="thinking-block" id="thinkBlock">
     <div class="thinking-header" onclick="toggleThink()">
@@ -293,23 +295,24 @@ input[type=range]{flex:1;accent-color:var(--pink)}
       <span style="font-size:10px;margin-left:auto;color:var(--muted)" id="thinkToggleLabel">▼ раскрыть</span>
     </div>
     <div class="thinking-body" id="thinkBody">
-      <div class="think-line">Нужно доказать от противного.</div>
-      <div class="think-line q">Предположим, что √2 = p/q, где p,q — целые, gcd(p,q)=1.</div>
-      <div class="think-line">Тогда 2 = p²/q² → p² = 2q².</div>
-      <div class="think-line hi">Значит p² чётное → p чётное → p = 2k.</div>
-      <div class="think-line">Подставляем: (2k)² = 2q² → 4k² = 2q² → q² = 2k².</div>
-      <div class="think-line hi">Значит q² чётное → q чётное.</div>
-      <div class="think-line warn">Но тогда gcd(p,q) ≥ 2 — противоречие с gcd(p,q)=1!</div>
-      <div class="think-line">Следовательно, предположение неверно. √2 иррационально. ✓</div>
+      <div class="think-line" data-en="Need to prove by contradiction.">Нужно доказать от противного.</div>
+      <div class="think-line q" data-en="Assume √2 = p/q, where p,q are integers, gcd(p,q)=1.">Предположим, что √2 = p/q, где p,q — целые, gcd(p,q)=1.</div>
+      <div class="think-line" data-en="Then 2 = p²/q² → p² = 2q².">Тогда 2 = p²/q² → p² = 2q².</div>
+      <div class="think-line hi" data-en="So p² is even → p is even → p = 2k.">Значит p² чётное → p чётное → p = 2k.</div>
+      <div class="think-line" data-en="Substituting: (2k)² = 2q² → 4k² = 2q² → q² = 2k².">Подставляем: (2k)² = 2q² → 4k² = 2q² → q² = 2k².</div>
+      <div class="think-line hi" data-en="So q² is even → q is even.">Значит q² чётное → q чётное.</div>
+      <div class="think-line warn" data-en="But then gcd(p,q) ≥ 2 — contradicts gcd(p,q)=1!">Но тогда gcd(p,q) ≥ 2 — противоречие с gcd(p,q)=1!</div>
+      <div class="think-line" data-en="Therefore the assumption is false. √2 is irrational. ✓">Следовательно, предположение неверно. √2 иррационально. ✓</div>
     </div>
   </div>
 
-  <div style="padding:14px 16px;background:var(--purple-dim);border:0.5px solid rgba(139,124,248,.3);border-radius:8px;font-size:13px;color:var(--muted)">
+  <div style="padding:14px 16px;background:var(--purple-dim);border:0.5px solid rgba(139,124,248,.3);border-radius:8px;font-size:13px;color:var(--muted)"
+       data-en="<strong style='color:var(--purple)'>Final answer:</strong> Assume for contradiction: √2 = p/q (irreducible fraction). Then p² = 2q², so p is even, p=2k → q² = 2k² → q is even. But then GCD(p,q) ≥ 2 — contradiction. ∎">
     <strong style="color:var(--purple)">Финальный ответ:</strong> Предположим от противного: √2 = p/q (несократимая дробь). Тогда p² = 2q², откуда p чётное, p=2k → q² = 2k² → q чётное. Но тогда НОД(p,q) ≥ 2 — противоречие. ∎
   </div>
 
   <div style="margin-top:14px;padding:12px 16px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
-    <div class="sec">Thinking budget — бюджет мышления</div>
+    <div class="sec" data-en="Thinking budget">Thinking budget — бюджет мышления</div>
     <div class="slider-row">
       <label>max thinking tokens</label>
       <input type="range" min="0" max="32000" step="1000" value="8000" id="thinkSlider" oninput="updateThinkBudget(this.value)">
@@ -319,17 +322,17 @@ input[type=range]{flex:1;accent-color:var(--pink)}
       ~6 страниц рассуждений · подходит для большинства задач
     </div>
   </div>
-  <div class="note note-pink"><strong>Важно:</strong> thinking-токены не кэшируются между запросами и стоят дороже обычных. Claude 3.7 Sonnet: до 128k thinking tokens. Используется для математики, кода, planning.</div>
+  <div class="note note-pink" data-en="<strong>Note:</strong> thinking tokens are not cached between requests and cost more than regular tokens. Claude 3.7 Sonnet: up to 128k thinking tokens. Used for math, code, planning."><strong>Важно:</strong> thinking-токены не кэшируются между запросами и стоят дороже обычных. Claude 3.7 Sonnet: до 128k thinking tokens. Используется для математики, кода, planning.</div>
 </div>
 
 <!-- STEP 4: Memory types -->
 <div class="panel" id="p4">
-  <div class="sec">шаг 5 / 6</div>
-  <h2>Типы памяти агента</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Контекстное окно — главная «рабочая память», но оно конечно. Агенты комбинируют несколько типов хранения.</p>
+  <div class="sec" data-en="step 5 / 6">шаг 5 / 6</div>
+  <h2 data-en="Agent memory types">Типы памяти агента</h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="The context window is the main &#39;working memory&#39;, but it is finite. Agents combine several storage types.">Контекстное окно — главная «рабочая память», но оно конечно. Агенты комбинируют несколько типов хранения.</p>
 
   <div class="slider-row">
-    <label>токенов в контексте</label>
+    <label data-en="tokens in context">токенов в контексте</label>
     <input type="range" min="0" max="200000" step="1000" value="50000" id="ctxSlider" oninput="updateCtx(this.value)">
     <span class="slider-val" id="ctxVal">50 000</span>
   </div>
@@ -338,34 +341,35 @@ input[type=range]{flex:1;accent-color:var(--pink)}
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0">
     <div style="padding:13px;border-radius:10px;background:var(--blue-dim);border:0.5px solid var(--blue)">
-      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">In-context (рабочая)</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.7">Всё в текущем окне. Мгновенный доступ. Теряется при завершении сессии. Claude: до 200k токенов ≈ 150k слов.</div>
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px" data-en="In-context (working)">In-context (рабочая)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7" data-en="Everything in the current window. Instant access. Lost when the session ends. Claude: up to 200k tokens ≈ 150k words.">Всё в текущем окне. Мгновенный доступ. Теряется при завершении сессии. Claude: до 200k токенов ≈ 150k слов.</div>
     </div>
     <div style="padding:13px;border-radius:10px;background:var(--teal-dim);border:0.5px solid var(--teal)">
-      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--teal);margin-bottom:6px">External (долгосрочная)</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.7">Векторная БД, файлы, SQL. Неограниченный объём, но требует retrieval. Агент сам решает что сохранить.</div>
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--teal);margin-bottom:6px" data-en="External (long-term)">External (долгосрочная)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7" data-en="Vector DB, files, SQL. Unlimited size but requires retrieval. The agent decides what to save.">Векторная БД, файлы, SQL. Неограниченный объём, но требует retrieval. Агент сам решает что сохранить.</div>
     </div>
     <div style="padding:13px;border-radius:10px;background:var(--amber-dim);border:0.5px solid var(--amber)">
-      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--amber);margin-bottom:6px">Episodic (эпизодическая)</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.7">Лог прошлых разговоров и действий. Подгружается по релевантности через RAG. «Что я делал с этим файлом в прошлый раз?»</div>
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--amber);margin-bottom:6px" data-en="Episodic">Episodic (эпизодическая)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7" data-en="Log of past conversations and actions. Loaded by relevance via RAG. &#39;What did I do with this file last time?&#39;">Лог прошлых разговоров и действий. Подгружается по релевантности через RAG. «Что я делал с этим файлом в прошлый раз?»</div>
     </div>
     <div style="padding:13px;border-radius:10px;background:var(--purple-dim);border:0.5px solid var(--purple)">
-      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--purple);margin-bottom:6px">Semantic (семантическая)</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.7">База знаний: факты, предпочтения пользователя, контекст проекта. Claude Code: CLAUDE.md + memory-файлы.</div>
+      <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--purple);margin-bottom:6px" data-en="Semantic">Semantic (семантическая)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7" data-en="Knowledge base: facts, user preferences, project context. Claude Code: CLAUDE.md + memory files.">База знаний: факты, предпочтения пользователя, контекст проекта. Claude Code: CLAUDE.md + memory-файлы.</div>
     </div>
   </div>
-  <div class="note note-teal"><strong>Prompt caching:</strong> Anthropic кэширует часть контекста между запросами (до 5 мин). Системный промпт + инструменты + документы = до 90% экономии стоимости на повторных вызовах.</div>
+  <div class="note note-teal" data-en="<strong>Prompt caching:</strong> Anthropic caches part of the context between requests (up to 5 min). System prompt + tools + documents = up to 90% cost savings on repeated calls."><strong>Prompt caching:</strong> Anthropic кэширует часть контекста между запросами (до 5 мин). Системный промпт + инструменты + документы = до 90% экономии стоимости на повторных вызовах.</div>
 </div>
 
 <!-- STEP 5: Multi-agent -->
 <div class="panel" id="p5">
-  <div class="sec">шаг 6 / 6</div>
-  <h2>Мульти-агентные системы</h2>
-  <p style="color:var(--muted);margin-bottom:14px">Сложные задачи разбиваются между специализированными агентами. Оркестратор планирует, субагенты исполняют параллельно.</p>
+  <div class="sec" data-en="step 6 / 6">шаг 6 / 6</div>
+  <h2 data-en="Multi-agent systems">Мульти-агентные системы</h2>
+  <p style="color:var(--muted);margin-bottom:14px" data-en="Complex tasks are split among specialized agents. The orchestrator plans; sub-agents execute in parallel.">Сложные задачи разбиваются между специализированными агентами. Оркестратор планирует, субагенты исполняют параллельно.</p>
 
-  <div class="sec">Нажми на субагента, чтобы запустить задачу</div>
+  <div class="sec" data-en="Click a sub-agent to run a task">Нажми на субагента, чтобы запустить задачу</div>
 
-  <div class="ma-orch" id="maOrch" onclick="fireAll()">
+  <div class="ma-orch" id="maOrch" onclick="fireAll()"
+       data-en='🎯 Orchestrator (Claude Opus)<br><span style="font-size:11px;font-weight:400;opacity:.8">"Run a competitor analysis and prepare a report"</span>'>
     🎯 Оркестратор (Claude Opus)<br>
     <span style="font-size:11px;font-weight:400;opacity:.8">"Проведи анализ конкурентов и подготовь отчёт"</span>
   </div>
@@ -381,8 +385,9 @@ input[type=range]{flex:1;accent-color:var(--pink)}
   <div class="ma-result" id="maResult">← нажми на агента или оркестратора</div>
 
   <div style="margin-top:18px;padding:14px 16px;background:var(--surface2);border-radius:10px;border:0.5px solid var(--border2)">
-    <div class="sec">Реальные мульти-агентные паттерны</div>
-    <div style="font-size:13px;color:var(--muted);line-height:2">
+    <div class="sec" data-en="Real multi-agent patterns">Реальные мульти-агентные паттерны</div>
+    <div style="font-size:13px;color:var(--muted);line-height:2"
+         data-en='<span style="color:var(--pink)">Claude Code</span> — orchestrator + sub-agents for parallel code search<br><span style="color:var(--blue)">Retrieval pipeline</span> — query → embedder → vector DB → reranker → LLM<br><span style="color:var(--teal)">Critic pattern</span> — generator agent + critic agent verifies results<br><span style="color:var(--amber)">Speculative execution</span> — multiple agents try different approaches in parallel'>
       <span style="color:var(--pink)">Claude Code</span> — оркестратор + субагенты для параллельного поиска по коду<br>
       <span style="color:var(--blue)">Retrieval pipeline</span> — query → embedder → vector DB → reranker → LLM<br>
       <span style="color:var(--teal)">Critic pattern</span> — агент-генератор + агент-критик проверяет результат<br>
@@ -391,8 +396,9 @@ input[type=range]{flex:1;accent-color:var(--pink)}
   </div>
 
   <div style="margin-top:20px;padding-top:18px;border-top:0.5px solid var(--border2)">
-    <div class="sec">Полная карта современного LLM-агента</div>
-    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:2.4">
+    <div class="sec" data-en="Full map of a modern LLM agent">Полная карта современного LLM-агента</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:2.4"
+         data-en='<span style="color:var(--text)">User</span> → <span style="color:var(--pink)">system prompt + tools</span> → <span style="color:var(--blue)">LLM (think)</span><br>→ <span style="color:var(--amber)">[tool_use JSON]</span> → <span style="color:var(--teal)">environment executes</span> → <span style="color:var(--teal)">[tool_result]</span> → <span style="color:var(--blue)">LLM again</span><br>→ ... (loop) ... → <span style="color:var(--purple)">final answer to user</span><br>+ <span style="color:var(--amber)">long-term memory</span> + <span style="color:var(--pink)">extended thinking</span> + <span style="color:var(--teal)">multi-agents</span>'>
       <span style="color:var(--text)">Пользователь</span> → <span style="color:var(--pink)">системный промпт + инструменты</span> → <span style="color:var(--blue)">LLM (think)</span><br>
       → <span style="color:var(--amber)">[tool_use JSON]</span> → <span style="color:var(--teal)">среда исполняет</span> → <span style="color:var(--teal)">[tool_result]</span> → <span style="color:var(--blue)">LLM снова</span><br>
       → ... (цикл) ... → <span style="color:var(--purple)">финальный ответ пользователю</span><br>
@@ -400,13 +406,13 @@ input[type=range]{flex:1;accent-color:var(--pink)}
     </div>
   </div>
 
-  <div class="note note-pink"><strong>MCP (Model Context Protocol):</strong> открытый стандарт Anthropic для подключения инструментов к любой модели. Сервер MCP = плагин: браузер, БД, Slack, GitHub — модель видит их как нативные инструменты.</div>
+  <div class="note note-pink" data-en="<strong>MCP (Model Context Protocol):</strong> Anthropic&#39;s open standard for connecting tools to any model. An MCP server = a plugin: browser, DB, Slack, GitHub — the model sees them as native tools."><strong>MCP (Model Context Protocol):</strong> открытый стандарт Anthropic для подключения инструментов к любой модели. Сервер MCP = плагин: браузер, БД, Slack, GitHub — модель видит их как нативные инструменты.</div>
 </div>
 
 <div class="nav-row">
-  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← назад</button>
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled data-en="← back">← назад</button>
   <span class="counter" id="counter">1 / 6</span>
-  <button class="nav-btn" id="nextBtn" onclick="go(1)">далее →</button>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)" data-en="next →">далее →</button>
 </div>
 </div>
 </div>
@@ -414,24 +420,30 @@ input[type=range]{flex:1;accent-color:var(--pink)}
 <script>
 // ── NAV ───────────────────────────────────────────────────────────────
 const STEPS = [
-  {id:'p0',label:'01 LLM→агент'},
-  {id:'p1',label:'02 tool use'},
-  {id:'p2',label:'03 ReAct цикл'},
-  {id:'p3',label:'04 thinking'},
-  {id:'p4',label:'05 память'},
-  {id:'p5',label:'06 мульти-агент'},
+  {id:'p0',label:'01 LLM→агент',    en:'01 LLM→agent'},
+  {id:'p1',label:'02 tool use',      en:'02 tool use'},
+  {id:'p2',label:'03 ReAct цикл',    en:'03 ReAct loop'},
+  {id:'p3',label:'04 thinking',      en:'04 thinking'},
+  {id:'p4',label:'05 память',        en:'05 memory'},
+  {id:'p5',label:'06 мульти-агент',  en:'06 multi-agent'},
 ];
 let cur = 0;
 const nav = document.getElementById('stepNav');
-STEPS.forEach((s,i)=>{
-  const b=document.createElement('button');
-  b.className='step-btn'+(i===0?' active':'');
-  b.textContent=s.label; b.onclick=()=>jump(i); nav.appendChild(b);
-});
+function buildNav(){
+  nav.innerHTML='';
+  STEPS.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='step-btn'+(i===cur?' active':'');
+    b.innerHTML=window.T?T(s.label,s.en):s.label;
+    b.dataset.en=s.en;
+    b.onclick=()=>jump(i); nav.appendChild(b);
+  });
+}
+buildNav();
 function render(){
   STEPS.forEach((s,i)=>{
     document.getElementById(s.id).classList.toggle('active',i===cur);
-    nav.children[i].classList.toggle('active',i===cur);
+    if(nav.children[i]) nav.children[i].classList.toggle('active',i===cur);
   });
   document.getElementById('counter').textContent=(cur+1)+' / '+STEPS.length;
   document.getElementById('prevBtn').disabled=cur===0;
@@ -443,6 +455,7 @@ function render(){
 }
 function go(d){cur=Math.max(0,Math.min(STEPS.length-1,cur+d));render();}
 function jump(i){cur=i;render();}
+window.onLangChange=function(){buildNav();render();if(window.applyLang)applyLang();};
 
 // ── TOOLS ─────────────────────────────────────────────────────────────
 const TOOLS = [
@@ -460,7 +473,7 @@ const TOOLS = [
   <ck>"tool_use_id"</ck>: <cs>"tu_01"</cs>,
   <ck>"content"</ck>: <cs>"42"</cs>
 }`,
-   note:'Модель видит "42" в контексте и продолжает рассуждение.'},
+   note:'Модель видит "42" в контексте и продолжает рассуждение.', noteEn:'The model sees "42" in context and continues reasoning.'},
 
   {name:'web_search', label:'web search',
    req:`{
@@ -478,7 +491,7 @@ const TOOLS = [
       <ck>"snippet"</ck>: <cs>"scores 70.3% on SWE-bench..."</cs> }
   ]
 }`,
-   note:'Результат поиска добавляется в контекст как tool_result.'},
+   note:'Результат поиска добавляется в контекст как tool_result.', noteEn:'Search results are added to the context as a tool_result.'},
 
   {name:'read_file', label:'read file',
    req:`{
@@ -494,7 +507,7 @@ const TOOLS = [
   <ck>"content"</ck>: <cs>"import torch\\nclass Transformer(nn.Module):\\n  def __init__(self, d_model=768,..."</cs>,
   <ck>"line_count"</ck>: <cn>342</cn>
 }`,
-   note:'Файл читается побайтово, результат — строка в контексте.'},
+   note:'Файл читается побайтово, результат — строка в контексте.', noteEn:'File is read byte by byte; the result is a string in the context.'},
 
   {name:'computer_use', label:'computer use',
    req:`{
@@ -512,7 +525,7 @@ const TOOLS = [
                 <ck>"data"</ck>: <cs>"iVBORw0KGgo..."</cs> } }
   ]
 }`,
-   note:'Модель видит скриншот как обычное изображение и решает следующее действие.'},
+   note:'Модель видит скриншот как обычное изображение и решает следующее действие.', noteEn:'The model sees the screenshot as a regular image and decides the next action.'},
 ];
 
 let curTool = 0;
@@ -529,34 +542,40 @@ function initTools(){
   document.getElementById('toolDemo').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0">
       <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">→ Модель генерирует</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">${window.T && window.LANG==='en' ? '→ Model generates' : '→ Модель генерирует'}</div>
         <div class="codeblock">${t.req}</div>
       </div>
       <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">← Среда возвращает</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">${window.T && window.LANG==='en' ? '← Environment returns' : '← Среда возвращает'}</div>
         <div class="codeblock">${t.res}</div>
       </div>
     </div>
-    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:6px;border:0.5px solid var(--border2)">${t.note}</div>`;
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:6px;border:0.5px solid var(--border2)">${window.T && window.LANG==='en' && t.noteEn ? t.noteEn : t.note}</div>`;
 }
 
 // ── LOOP ─────────────────────────────────────────────────────────────
 const LOOP_STEPS = [
-  {cls:'ls-think', tag:'Think 🧠', title:'Планирование',
-   body:`Нужно: 1) найти все .py файлы, 2) найти самый большой.
-Сначала подсчитаю количество через find + wc.`},
-  {cls:'ls-act', tag:'Act ⚡', title:'Вызов инструмента #1',
-   body:`bash("find . -name '*.py' | wc -l")\n→ ожидаю число файлов`},
-  {cls:'ls-obs', tag:'Observe 👁', title:'Результат #1',
-   body:`tool_result: "42"\nВ репозитории 42 файла Python. Теперь найду самый большой.`},
-  {cls:'ls-act', tag:'Act ⚡', title:'Вызов инструмента #2',
-   body:`bash("find . -name '*.py' -exec wc -l {} + | sort -rn | head -3")\n→ ожидаю топ-3 по строкам`},
-  {cls:'ls-obs', tag:'Observe 👁', title:'Результат #2',
-   body:`tool_result: "2847 src/model.py\\n1203 src/train.py\\n891 utils/data.py"`},
-  {cls:'ls-think', tag:'Think 🧠', title:'Достаточно данных',
-   body:`Есть всё необходимое: 42 файла, самый большой — src/model.py (2847 строк). Готов ответить.`},
-  {cls:'ls-answer', tag:'Answer ✓', title:'Финальный ответ',
-   body:`В репозитории **42 файла Python**. Самый большой — \`src/model.py\` (2 847 строк).`},
+  {cls:'ls-think', tag:'Think 🧠', title:'Планирование', titleEn:'Planning',
+   body:`Нужно: 1) найти все .py файлы, 2) найти самый большой.\nСначала подсчитаю количество через find + wc.`,
+   bodyEn:`Need to: 1) find all .py files, 2) find the largest one.\nFirst I'll count them via find + wc.`},
+  {cls:'ls-act', tag:'Act ⚡', title:'Вызов инструмента #1', titleEn:'Tool call #1',
+   body:`bash("find . -name '*.py' | wc -l")\n→ ожидаю число файлов`,
+   bodyEn:`bash("find . -name '*.py' | wc -l")\n→ expecting file count`},
+  {cls:'ls-obs', tag:'Observe 👁', title:'Результат #1', titleEn:'Result #1',
+   body:`tool_result: "42"\nВ репозитории 42 файла Python. Теперь найду самый большой.`,
+   bodyEn:`tool_result: "42"\nRepo has 42 Python files. Now I'll find the largest one.`},
+  {cls:'ls-act', tag:'Act ⚡', title:'Вызов инструмента #2', titleEn:'Tool call #2',
+   body:`bash("find . -name '*.py' -exec wc -l {} + | sort -rn | head -3")\n→ ожидаю топ-3 по строкам`,
+   bodyEn:`bash("find . -name '*.py' -exec wc -l {} + | sort -rn | head -3")\n→ expecting top-3 by line count`},
+  {cls:'ls-obs', tag:'Observe 👁', title:'Результат #2', titleEn:'Result #2',
+   body:`tool_result: "2847 src/model.py\\n1203 src/train.py\\n891 utils/data.py"`,
+   bodyEn:`tool_result: "2847 src/model.py\\n1203 src/train.py\\n891 utils/data.py"`},
+  {cls:'ls-think', tag:'Think 🧠', title:'Достаточно данных', titleEn:'Enough data',
+   body:`Есть всё необходимое: 42 файла, самый большой — src/model.py (2847 строк). Готов ответить.`,
+   bodyEn:`Have everything: 42 files, largest is src/model.py (2847 lines). Ready to answer.`},
+  {cls:'ls-answer', tag:'Answer ✓', title:'Финальный ответ', titleEn:'Final answer',
+   body:`В репозитории **42 файла Python**. Самый большой — \`src/model.py\` (2 847 строк).`,
+   bodyEn:`The repo has **42 Python files**. The largest is \`src/model.py\` (2,847 lines).`},
 ];
 let loopCur = 0;
 
@@ -569,7 +588,7 @@ function initLoop(){ loopCur=0; renderLoop(); }
 function renderLoop(){
   document.getElementById('loopPrev').disabled = loopCur===0;
   document.getElementById('loopNext').disabled = loopCur===LOOP_STEPS.length-1;
-  document.getElementById('loopInfo').textContent = `шаг ${loopCur+1} / ${LOOP_STEPS.length}`;
+  document.getElementById('loopInfo').textContent = T?`${T('шаг','step')} ${loopCur+1} / ${LOOP_STEPS.length}`:`шаг ${loopCur+1} / ${LOOP_STEPS.length}`;
   const el = document.getElementById('loopSteps');
   el.innerHTML = '';
   LOOP_STEPS.slice(0,loopCur+1).forEach((s,i)=>{
@@ -577,7 +596,10 @@ function renderLoop(){
     const div = document.createElement('div');
     div.className=`loop-step ${s.cls}${isActive?' active':''}`;
     div.style.opacity = isActive?'1':'0.55';
-    div.innerHTML=`<div class="ls-tag">${s.tag}</div><div class="ls-title">${s.title}</div>${isActive?`<div class="ls-body" style="display:block">${s.body}</div>`:''}`;
+    const EN = window.T && window.LANG === 'en';
+    const title = EN && s.titleEn ? s.titleEn : s.title;
+    const body  = EN && s.bodyEn  ? s.bodyEn  : s.body;
+    div.innerHTML=`<div class="ls-tag">${s.tag}</div><div class="ls-title">${title}</div>${isActive?`<div class="ls-body" style="display:block">${body}</div>`:''}`;
     div.onclick=()=>{loopCur=i;renderLoop();};
     el.appendChild(div);
   });
@@ -588,13 +610,21 @@ function toggleThink(){
   const body = document.getElementById('thinkBody');
   const label = document.getElementById('thinkToggleLabel');
   body.classList.toggle('open');
-  label.textContent = body.classList.contains('open') ? '▲ свернуть' : '▼ раскрыть';
+  const EN = window.T && window.LANG === 'en';
+  label.textContent = body.classList.contains('open') ? (EN ? '▲ collapse' : '▲ свернуть') : (EN ? '▼ expand' : '▼ раскрыть');
 }
 
 function updateThinkBudget(v){
   v = parseInt(v);
   document.getElementById('thinkVal').textContent = v.toLocaleString('ru');
-  const notes = [
+  const EN = window.T && window.LANG === 'en';
+  const notes = EN ? [
+    [0,'0 — thinking disabled, direct answer'],
+    [2000,'~1-2 pages · simple tasks'],
+    [8000,'~6 pages · most tasks'],
+    [16000,'~12 pages · complex code / math'],
+    [32000,'~25 pages · very complex reasoning'],
+  ] : [
     [0,'0 — thinking отключён, прямой ответ'],
     [2000,'~1-2 страницы · простые задачи'],
     [8000,'~6 страниц · большинство задач'],
@@ -617,50 +647,51 @@ function renderMemBars(used){
   const MAX = 200000;
   const pct = used/MAX*100;
   const free = MAX-used;
+  const EN = window.T && window.LANG === 'en';
   document.getElementById('memBars').innerHTML = `
     <div class="mem-track">
-      <div class="mem-name" style="color:var(--blue)">Контекстное окно (Claude) — 200 000 токенов</div>
+      <div class="mem-name" style="color:var(--blue)">${EN ? 'Context window (Claude) — 200 000 tokens' : 'Контекстное окно (Claude) — 200 000 токенов'}</div>
       <div style="position:relative;padding-top:24px">
         <div class="mem-bar">
           <div class="mem-fill" style="width:${pct}%;background:var(--blue)"></div>
-          <div class="mem-label" style="color:var(--blue)">${(used/1000).toFixed(0)}k использовано</div>
+          <div class="mem-label" style="color:var(--blue)">${(used/1000).toFixed(0)}k ${EN ? 'used' : 'использовано'}</div>
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px">
-        <span style="color:var(--blue)">${(used/1000).toFixed(0)}k токенов в контексте ≈ ${Math.round(used*0.75/1000)}k слов</span>
-        <span>${(free/1000).toFixed(0)}k свободно</span>
+        <span style="color:var(--blue)">${(used/1000).toFixed(0)}k ${EN ? 'tokens in context ≈' : 'токенов в контексте ≈'} ${Math.round(used*0.75/1000)}k ${EN ? 'words' : 'слов'}</span>
+        <span>${(free/1000).toFixed(0)}k ${EN ? 'free' : 'свободно'}</span>
       </div>
       <div class="mem-props" style="margin-top:8px">
-        <span class="mem-prop" style="border-color:var(--blue);color:var(--blue)">скорость: мгновенно</span>
-        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">стоимость: ${(used*0.000015).toFixed(3)}$ input</span>
-        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">персистентность: в рамках сессии</span>
+        <span class="mem-prop" style="border-color:var(--blue);color:var(--blue)">${EN ? 'speed: instant' : 'скорость: мгновенно'}</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">${EN ? 'cost:' : 'стоимость:'} ${(used*0.000015).toFixed(3)}$ input</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">${EN ? 'persistence: session' : 'персистентность: в рамках сессии'}</span>
       </div>
     </div>
     <div class="mem-track" style="margin-top:8px">
-      <div class="mem-name" style="color:var(--teal)">Внешняя память (векторная БД)</div>
+      <div class="mem-name" style="color:var(--teal)">${EN ? 'External memory (vector DB)' : 'Внешняя память (векторная БД)'}</div>
       <div style="position:relative;padding-top:24px">
         <div class="mem-bar">
           <div class="mem-fill" style="width:100%;background:var(--teal);opacity:.6"></div>
-          <div class="mem-label" style="color:var(--teal)">∞ неограниченно</div>
+          <div class="mem-label" style="color:var(--teal)">∞ ${EN ? 'unlimited' : 'неограниченно'}</div>
         </div>
       </div>
       <div class="mem-props" style="margin-top:8px">
-        <span class="mem-prop" style="border-color:var(--teal);color:var(--teal)">скорость: ~50-200ms retrieval</span>
-        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">объём: неограниченно</span>
-        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">персистентность: постоянно</span>
+        <span class="mem-prop" style="border-color:var(--teal);color:var(--teal)">${EN ? 'speed: ~50-200ms retrieval' : 'скорость: ~50-200ms retrieval'}</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">${EN ? 'size: unlimited' : 'объём: неограниченно'}</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">${EN ? 'persistence: permanent' : 'персистентность: постоянно'}</span>
       </div>
     </div>
     <div class="mem-track" style="margin-top:8px">
-      <div class="mem-name" style="color:var(--amber)">Prompt cache (Anthropic) — до 5 минут</div>
+      <div class="mem-name" style="color:var(--amber)">${EN ? 'Prompt cache (Anthropic) — up to 5 minutes' : 'Prompt cache (Anthropic) — до 5 минут'}</div>
       <div style="position:relative;padding-top:24px">
         <div class="mem-bar">
           <div class="mem-fill" style="width:${Math.min(pct,80)}%;background:var(--amber);opacity:.7"></div>
-          <div class="mem-label" style="color:var(--amber)">кэшируемая часть</div>
+          <div class="mem-label" style="color:var(--amber)">${EN ? 'cacheable part' : 'кэшируемая часть'}</div>
         </div>
       </div>
       <div class="mem-props" style="margin-top:8px">
-        <span class="mem-prop" style="border-color:var(--amber);color:var(--amber)">экономия: до 90% стоимости</span>
-        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">TTL: 5 минут</span>
+        <span class="mem-prop" style="border-color:var(--amber);color:var(--amber)">${EN ? 'savings: up to 90%' : 'экономия: до 90% стоимости'}</span>
+        <span class="mem-prop" style="border-color:var(--border2);color:var(--muted)">TTL: ${EN ? '5 minutes' : '5 минут'}</span>
       </div>
     </div>`;
 }
@@ -668,14 +699,17 @@ function renderMemBars(used){
 // ── MULTI-AGENT ───────────────────────────────────────────────────────
 const MA_AGENTS = [
   {cls:'ph1', color:'var(--blue)', name:'🔍 Researcher',
-   task:'Собирает данные о конкурентах через web_search',
-   result:'Найдено 12 конкурентов. Ключевые: A (рост 40%), B (новый продукт), C (снижение цен).'},
+   task:'Собирает данные о конкурентах через web_search', taskEn:'Gathers competitor data via web_search',
+   result:'Найдено 12 конкурентов. Ключевые: A (рост 40%), B (новый продукт), C (снижение цен).',
+   resultEn:'Found 12 competitors. Key ones: A (40% growth), B (new product), C (price cuts).'},
   {cls:'ph2', color:'var(--amber)', name:'📊 Analyst',
-   task:'Анализирует данные, строит сравнительную таблицу',
-   result:'Матрица SWOT готова. Наше преимущество: time-to-market. Риск: ценовое давление от C.'},
+   task:'Анализирует данные, строит сравнительную таблицу', taskEn:'Analyses data, builds comparison table',
+   result:'Матрица SWOT готова. Наше преимущество: time-to-market. Риск: ценовое давление от C.',
+   resultEn:'SWOT matrix ready. Our advantage: time-to-market. Risk: price pressure from C.'},
   {cls:'ph3', color:'var(--teal)', name:'✍️ Writer',
-   task:'Пишет исполнительское резюме отчёта',
-   result:'Отчёт 3 страницы готов. Ключевой вывод: фокус на enterprise-сегмент.'},
+   task:'Пишет исполнительское резюме отчёта', taskEn:'Writes executive summary of the report',
+   result:'Отчёт 3 страницы готов. Ключевой вывод: фокус на enterprise-сегмент.',
+   resultEn:'3-page report ready. Key finding: focus on the enterprise segment.'},
 ];
 
 let maFired = new Set();
@@ -685,21 +719,22 @@ function initMA(){
 }
 function renderMA(){
   const el = document.getElementById('maAgents');
+  const EN = window.T && window.LANG === 'en';
   el.innerHTML = MA_AGENTS.map((a,i)=>`
     <div class="ma-agent ${maFired.has(i)?'fired':''}"
          style="background:${maFired.has(i)?`${a.color}20`:'var(--surface2)'};border-color:${maFired.has(i)?a.color:'var(--border2)'};color:${maFired.has(i)?a.color:'var(--muted)'}"
          onclick="fireAgent(${i})">
       <div class="agent-name">${a.name}</div>
-      <div class="agent-desc">${a.task}</div>
-      ${maFired.has(i)?`<div style="margin-top:6px;font-size:10px;opacity:.8">✓ завершён</div>`:''}
+      <div class="agent-desc">${EN && a.taskEn ? a.taskEn : a.task}</div>
+      ${maFired.has(i)?`<div style="margin-top:6px;font-size:10px;opacity:.8">✓ ${EN ? 'done' : 'завершён'}</div>`:''}
     </div>`).join('');
-  const results = [...maFired].map(i=>MA_AGENTS[i].result);
+  const results = [...maFired].map(i=> EN && MA_AGENTS[i].resultEn ? MA_AGENTS[i].resultEn : MA_AGENTS[i].result);
   const res = document.getElementById('maResult');
   if(results.length===0){
-    res.textContent='← нажми на агента или оркестратора';
+    res.textContent = EN ? '← click an agent or the orchestrator' : '← нажми на агента или оркестратора';
     res.style.color='var(--muted)';
   } else if(maFired.size===MA_AGENTS.length){
-    res.innerHTML=`<span style="color:var(--pink)">Оркестратор синтезирует:</span><br>${results.join('<br>')}`;
+    res.innerHTML=`<span style="color:var(--pink)">${EN ? 'Orchestrator synthesises:' : 'Оркестратор синтезирует:'}</span><br>${results.join('<br>')}`;
   } else {
     res.innerHTML=results.map(r=>`<span style="color:var(--teal)">✓</span> ${r}`).join('<br>');
   }
@@ -719,6 +754,10 @@ initLoop();
 initMem();
 initMA();
 render();
+</script>
+<script src="lang.js"></script>
+<script>
+if(window.onLangChange) window.onLangChange();
 </script>
 </body>
 </html>
